@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduNest — College Learning Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080c14;--s1:#0e1420;--s2:#141c2e;--s3:#1a2540;--s4:#1f2d4a;
+  --border:#1e3050;--border2:#254070;
+  --blue:#4f8ef7;--blue2:#7eb3ff;
+  --cyan:#22d3ee;--green:#22c55e;--gold:#f59e0b;--red:#f43f5e;--purple:#c084fc;--orange:#fb923c;
+  --text:#dde6f5;--text2:#7a95c0;--text3:#3d5275;
+  --student:#818cf8;--teacher:#fb923c;
+  --radius:14px;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--s3);border-radius:5px;}
+input,select,textarea,button{font-family:'Outfit',sans-serif;}
+
+/* ─── TOASTS ─── */
+#toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{
+  padding:12px 18px;border-radius:10px;font-size:.85rem;font-weight:500;
+  animation:toastIn .3s ease forwards;max-width:300px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.toast.success{background:#0d2e1f;border:1px solid var(--green);color:#4ade80;}
+.toast.error{background:#2d0d17;border:1px solid var(--red);color:#fb7185;}
+.toast.info{background:#0d1e3a;border:1px solid var(--blue);color:var(--blue2);}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ─── MODAL OVERLAY ─── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--s1);border:1px solid var(--border2);border-radius:20px;
+  width:100%;max-width:600px;max-height:90vh;overflow-y:auto;
+  animation:modalIn .3s cubic-bezier(.16,1,.3,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{
+  padding:24px 28px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-size:1.1rem;font-weight:700;}
+.modal-body{padding:24px 28px;}
+.modal-footer{padding:16px 28px 24px;display:flex;gap:10px;justify-content:flex-end;}
+.btn-close{
+  width:32px;height:32px;border-radius:8px;background:var(--s3);border:none;
+  color:var(--text2);cursor:pointer;font-size:1.1rem;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.btn-close:hover{background:var(--red);color:#fff;}
+
+/* ─── AUTH ─── */
+#auth-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 10%,rgba(79,142,247,.1),transparent),
+    radial-gradient(ellipse 60% 50% at 90% 90%,rgba(192,132,252,.07),transparent),
+    var(--bg);
+  position:relative;
+}
+.grid-bg{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(79,142,247,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(79,142,247,.04) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.auth-box{
+  position:relative;z-index:2;width:100%;max-width:480px;margin:20px;
+}
+.auth-logo-block{text-align:center;margin-bottom:32px;}
+.auth-icon{
+  width:64px;height:64px;border-radius:20px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  margin:0 auto 14px;box-shadow:0 0 60px rgba(79,142,247,.4);
+}
+.auth-brand{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;letter-spacing:-.03em;}
+.auth-brand em{font-style:italic;color:var(--blue);}
+.auth-tagline{color:var(--text2);font-size:.9rem;margin-top:4px;}
+.auth-card{
+  background:var(--s1);border:1px solid var(--border2);border-radius:24px;
+  padding:36px;box-shadow:0 40px 80px rgba(0,0,0,.6);
+  animation:fadeUp .5s cubic-bezier(.16,1,.3,1);
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--s2);border-radius:12px;padding:4px;margin-bottom:28px;}
+.rtab{
+  padding:11px;border:none;border-radius:9px;cursor:pointer;
+  font-size:.88rem;font-weight:600;background:transparent;color:var(--text2);transition:all .25s;
+}
+.rtab.on.s{background:var(--student);color:#fff;box-shadow:0 4px 16px rgba(129,140,248,.3);}
+.rtab.on.t{background:var(--teacher);color:#07090f;box-shadow:0 4px 16px rgba(251,146,60,.3);}
+.fld{margin-bottom:15px;}
+.fld label{display:block;font-size:.75rem;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;}
+.fld input,.fld select,.fld textarea{
+  width:100%;padding:11px 14px;background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:.9rem;
+  transition:border-color .2s,box-shadow .2s;outline:none;resize:vertical;
+}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,.12);}
+.fld select option{background:var(--s2);}
+.btn-main{
+  width:100%;padding:13px;border:none;border-radius:10px;font-size:.95rem;font-weight:700;
+  cursor:pointer;transition:all .25s;letter-spacing:.01em;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(79,142,247,.35);}
+.auth-alt{text-align:center;margin-top:18px;color:var(--text2);font-size:.88rem;}
+.auth-alt a{color:var(--blue);cursor:pointer;text-decoration:none;font-weight:600;}
+.auth-alt a:hover{text-decoration:underline;}
+.err-box{
+  background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.3);
+  color:#fda4af;padding:10px 14px;border-radius:8px;font-size:.83rem;
+  margin-bottom:14px;display:none;
+}
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--text3);font-size:.8rem;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ─── APP SHELL ─── */
+#app{display:none;min-height:100vh;}
+
+/* ─── TOPBAR ─── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;height:62px;z-index:200;
+  background:rgba(8,12,20,.88);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:16px;
+}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;}
+.topbar-logo em{font-style:italic;color:var(--blue);}
+.topbar-sep{width:1px;height:28px;background:var(--border);margin:0 4px;}
+.topbar-context{font-size:.8rem;color:var(--text2);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.notif-btn{
+  position:relative;width:38px;height:38px;border-radius:10px;
+  background:var(--s2);border:1px solid var(--border);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  transition:all .2s;color:var(--text2);
+}
+.notif-btn:hover{border-color:var(--blue);color:var(--blue);}
+.notif-dot{
+  position:absolute;top:6px;right:6px;width:8px;height:8px;
+  background:var(--red);border-radius:50%;border:2px solid var(--s2);display:none;
+}
+.user-pill{
+  display:flex;align-items:center;gap:10px;padding:6px 14px 6px 8px;
+  background:var(--s2);border:1px solid var(--border);border-radius:40px;cursor:pointer;
+  transition:all .2s;
+}
+.user-pill:hover{border-color:var(--border2);}
+.u-avatar{
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;
+}
+.u-av-s{background:linear-gradient(135deg,var(--student),#6366f1);}
+.u-av-t{background:linear-gradient(135deg,var(--teacher),#ef4444);color:#fff;}
+.u-info{display:flex;flex-direction:column;gap:1px;}
+.u-name{font-size:.82rem;font-weight:600;line-height:1.2;}
+.u-role{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;}
+.u-role.s{color:var(--student);}
+.u-role.t{color:var(--teacher);}
+.btn-logout{
+  padding:8px 14px;background:transparent;border:1px solid var(--border);
+  border-radius:8px;color:var(--text2);cursor:pointer;font-size:.8rem;font-weight:600;
+  transition:all .2s;
+}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+/* ─── SIDEBAR ─── */
+#sidebar{
+  position:fixed;top:62px;left:0;bottom:0;width:240px;
+  background:var(--s1);border-right:1px solid var(--border);
+  overflow-y:auto;padding:20px 12px;z-index:100;
+  transition:transform .3s ease;
+}
+.nav-section{margin-bottom:24px;}
+.nav-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);font-weight:700;padding:0 8px;margin-bottom:8px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
+  cursor:pointer;transition:all .2s;color:var(--text2);font-size:.88rem;font-weight:500;
+  border:1px solid transparent;margin-bottom:2px;position:relative;
+}
+.nav-item:hover{background:var(--s2);color:var(--text);}
+.nav-item.active{background:rgba(79,142,247,.12);border-color:rgba(79,142,247,.2);color:var(--blue);}
+.nav-icon{font-size:1.05rem;width:22px;text-align:center;flex-shrink:0;}
+.nav-badge{
+  margin-left:auto;padding:1px 7px;border-radius:20px;
+  font-size:.68rem;font-weight:700;
+}
+.badge-blue{background:rgba(79,142,247,.2);color:var(--blue);}
+.badge-red{background:rgba(244,63,94,.2);color:var(--red);}
+.badge-gold{background:rgba(245,158,11,.2);color:var(--gold);}
+.badge-green{background:rgba(34,197,94,.2);color:var(--green);}
+
+/* ─── MAIN ─── */
+#main{margin-left:240px;margin-top:62px;padding:32px;min-height:calc(100vh - 62px);}
+.page{display:none;animation:fadeUp .35s ease;}
+.page.active{display:block;}
+
+/* ─── PAGE HEADERS ─── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+.ph-left h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;}
+.ph-left p{color:var(--text2);font-size:.88rem;margin-top:4px;}
+
+/* ─── BUTTONS ─── */
+.btn{
+  padding:9px 18px;border-radius:10px;font-size:.85rem;font-weight:600;
+  cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:7px;
+}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(79,142,247,.3);}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue);}
+.btn-danger{background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.3);color:var(--red);}
+.btn-danger:hover{background:rgba(244,63,94,.2);}
+.btn-success{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--green);}
+.btn-success:hover{background:rgba(34,197,94,.2);}
+.btn-sm{padding:6px 12px;font-size:.78rem;border-radius:8px;}
+.btn-gold{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:var(--gold);}
+.btn-gold:hover{background:rgba(245,158,11,.2);}
+
+/* ─── STATS CARDS ─── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px;}
+.stat-card{
+  background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;transition:border-color .2s;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-card::after{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:80px;height:80px;border-radius:50%;opacity:.06;
+}
+.stat-card.blue::after{background:var(--blue);}
+.stat-card.green::after{background:var(--green);}
+.stat-card.gold::after{background:var(--gold);}
+.stat-card.purple::after{background:var(--purple);}
+.stat-card.red::after{background:var(--red);}
+.stat-icon{font-size:1.3rem;margin-bottom:10px;}
+.stat-val{font-size:1.8rem;font-weight:800;line-height:1;margin-bottom:4px;}
+.stat-label{font-size:.78rem;color:var(--text2);font-weight:500;}
+.stat-change{font-size:.73rem;margin-top:4px;font-weight:600;}
+.stat-change.up{color:var(--green);}
+.stat-change.down{color:var(--red);}
+
+/* ─── CARDS ─── */
+.card{background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:.95rem;font-weight:700;}
+.card-body{padding:20px;}
+
+/* ─── SEARCH BAR ─── */
+.search-bar{
+  display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;
+}
+.search-input-wrap{position:relative;flex:1;min-width:200px;}
+.search-input-wrap .si-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.9rem;}
+.search-input-wrap input{
+  width:100%;padding:10px 14px 10px 36px;background:var(--s2);
+  border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;
+  transition:border-color .2s;
+}
+.search-input-wrap input:focus{border-color:var(--blue);}
+.filter-select{
+  padding:10px 14px;background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:.85rem;outline:none;cursor:pointer;
+  min-width:130px;
+}
+.filter-select:focus{border-color:var(--blue);}
+
+/* ─── DOUBT CARDS ─── */
+.doubt-list{display:flex;flex-direction:column;gap:14px;}
+.doubt-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;transition:all .2s;cursor:pointer;
+}
+.doubt-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.doubt-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.doubt-subject-tag{
+  padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.dc-math{background:rgba(192,132,252,.15);color:var(--purple);}
+.dc-physics{background:rgba(34,211,238,.15);color:var(--cyan);}
+.dc-chemistry{background:rgba(34,197,94,.15);color:var(--green);}
+.dc-cs{background:rgba(79,142,247,.15);color:var(--blue);}
+.dc-english{background:rgba(245,158,11,.15);color:var(--gold);}
+.dc-history{background:rgba(251,146,60,.15);color:var(--orange);}
+.dc-biology{background:rgba(244,63,94,.15);color:var(--red);}
+.dc-general{background:rgba(148,163,184,.15);color:var(--text2);}
+.doubt-status-tag{
+  padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;flex-shrink:0;
+}
+.status-open{background:rgba(244,63,94,.12);color:var(--red);}
+.status-answered{background:rgba(34,197,94,.12);color:var(--green);}
+.status-pending{background:rgba(245,158,11,.12);color:var(--gold);}
+.doubt-title{font-size:.98rem;font-weight:700;margin-bottom:6px;line-height:1.4;}
+.doubt-body{font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:12px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.doubt-meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.meta-item{display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--text3);}
+.meta-item .mi{font-size:.85rem;}
+.doubt-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+
+/* ─── ANSWER BLOCK ─── */
+.answer-block{
+  background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.15);
+  border-radius:12px;padding:16px 18px;margin-top:14px;
+}
+.answer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.answer-teacher-info{display:flex;align-items:center;gap:8px;}
+.at-avatar{
+  width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teacher),#ef4444);
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;
+}
+.at-name{font-size:.82rem;font-weight:700;color:var(--green);}
+.at-badge{font-size:.68rem;color:var(--text3);}
+.answer-text{font-size:.88rem;color:var(--text2);line-height:1.7;}
+.answer-attachments{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.attach-thumb{
+  background:var(--s3);border:1px solid var(--border);border-radius:8px;
+  padding:6px 10px;font-size:.78rem;color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;gap:6px;transition:all .2s;
+}
+.attach-thumb:hover{border-color:var(--blue);color:var(--blue);}
+
+/* ─── VIDEO GRID ─── */
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;}
+.video-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;transition:all .2s;cursor:pointer;
+}
+.video-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4);}
+.video-thumb{
+  position:relative;height:158px;background:var(--s3);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.video-thumb video{width:100%;height:100%;object-fit:cover;}
+.video-play-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;
+}
+.video-card:hover .video-play-overlay{opacity:1;}
+.play-btn-big{
+  width:50px;height:50px;border-radius:50%;background:rgba(79,142,247,.9);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  box-shadow:0 0 24px rgba(79,142,247,.5);
+}
+.video-info{padding:14px;}
+.video-title{font-size:.92rem;font-weight:700;margin-bottom:5px;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.video-sub{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.video-meta{font-size:.75rem;color:var(--text3);display:flex;align-items:center;gap:4px;}
+.video-subject-tag{padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700;}
+.video-duration{
+  position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.75);
+  padding:2px 7px;border-radius:5px;font-size:.72rem;font-weight:700;color:#fff;
+}
+
+/* ─── VIDEO PLAYER MODAL ─── */
+.video-player-modal .modal{max-width:780px;}
+.video-player-wrap{background:#000;border-radius:10px;overflow:hidden;margin-bottom:16px;}
+.video-player-wrap video{width:100%;max-height:420px;display:block;}
+
+/* ─── UPLOAD ZONE ─── */
+.upload-zone{
+  border:2px dashed var(--border2);border-radius:14px;padding:40px 20px;
+  text-align:center;cursor:pointer;transition:all .3s;position:relative;
+}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:rgba(79,142,247,.04);}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.uz-icon{font-size:2.5rem;margin-bottom:10px;}
+.uz-title{font-size:.95rem;font-weight:700;margin-bottom:4px;}
+.uz-sub{font-size:.8rem;color:var(--text2);}
+.uz-formats{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+.uz-fmt{background:var(--s3);padding:3px 9px;border-radius:6px;font-size:.72rem;font-weight:700;color:var(--text2);}
+.upload-preview{margin-top:14px;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:none;}
+.up-file{display:flex;align-items:center;gap:10px;}
+.up-file-icon{font-size:1.2rem;}
+.up-file-name{font-size:.85rem;font-weight:600;flex:1;}
+.up-file-size{font-size:.75rem;color:var(--text2);}
+.progress-bar{height:4px;background:var(--s3);border-radius:2px;margin-top:8px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:2px;transition:width .3s;width:0;}
+
+/* ─── ANNOUNCEMENTS ─── */
+.ann-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;margin-bottom:12px;transition:border-color .2s;
+}
+.ann-card:hover{border-color:var(--border2);}
+.ann-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.ann-title{font-size:.95rem;font-weight:700;line-height:1.4;}
+.ann-priority{padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;flex-shrink:0;}
+.ann-urgent{background:rgba(244,63,94,.15);color:var(--red);}
+.ann-normal{background:rgba(79,142,247,.15);color:var(--blue);}
+.ann-info{background:rgba(34,197,94,.15);color:var(--green);}
+.ann-body{font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:10px;}
+.ann-footer{display:flex;align-items:center;gap:12px;}
+
+/* ─── NOTES / RESOURCES ─── */
+.resource-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+.resource-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;transition:all .2s;cursor:pointer;text-align:center;
+}
+.resource-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.rc-icon{font-size:2.2rem;margin-bottom:10px;}
+.rc-name{font-size:.9rem;font-weight:700;margin-bottom:4px;}
+.rc-meta{font-size:.75rem;color:var(--text2);}
+.rc-actions{display:flex;gap:6px;justify-content:center;margin-top:12px;}
+
+/* ─── SCHEDULE / TIMETABLE ─── */
+.schedule-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.schedule-day-header{
+  text-align:center;padding:8px;background:var(--s3);border-radius:8px;
+  font-size:.78rem;font-weight:700;text-transform:uppercase;color:var(--text2);
+}
+.schedule-slot{
+  background:var(--s2);border:1px solid var(--border);border-radius:8px;
+  padding:10px;min-height:70px;transition:all .2s;
+}
+.schedule-slot.has-class{border-color:rgba(79,142,247,.3);background:rgba(79,142,247,.06);}
+.ss-time{font-size:.68rem;color:var(--text3);font-weight:600;margin-bottom:4px;}
+.ss-subject{font-size:.8rem;font-weight:700;color:var(--blue);}
+.ss-room{font-size:.72rem;color:var(--text2);}
+
+/* ─── NOTIFICATIONS PANEL ─── */
+.notif-panel{
+  position:fixed;top:70px;right:20px;width:320px;
+  background:var(--s1);border:1px solid var(--border2);border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);z-index:300;
+  display:none;animation:fadeUp .2s ease;max-height:480px;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.notif-panel.open{display:flex;}
+.notif-panel-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.notif-panel-title{font-size:.9rem;font-weight:700;}
+.notif-list{overflow-y:auto;flex:1;}
+.notif-item{padding:12px 16px;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer;}
+.notif-item:hover{background:var(--s2);}
+.notif-item.unread{background:rgba(79,142,247,.05);}
+.ni-title{font-size:.83rem;font-weight:600;margin-bottom:2px;}
+.ni-body{font-size:.78rem;color:var(--text2);line-height:1.4;}
+.ni-time{font-size:.7rem;color:var(--text3);margin-top:3px;}
+.ni-dot{width:7px;height:7px;background:var(--blue);border-radius:50%;flex-shrink:0;}
+
+/* ─── PROFILE PAGE ─── */
+.profile-hero{
+  background:linear-gradient(135deg,rgba(79,142,247,.08),rgba(192,132,252,.05));
+  border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:24px;
+  display:flex;align-items:center;gap:24px;
+}
+.profile-avatar-big{
+  width:80px;height:80px;border-radius:20px;
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;
+  flex-shrink:0;
+}
+.profile-details h2{font-size:1.4rem;font-weight:800;margin-bottom:4px;}
+.profile-details .p-role{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;}
+.profile-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.p-badge{padding:4px 10px;background:var(--s3);border:1px solid var(--border);border-radius:20px;font-size:.75rem;color:var(--text2);}
+
+/* ─── DASHBOARD WIDGETS ─── */
+.widget-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-top:20px;}
+.activity-feed{display:flex;flex-direction:column;gap:10px;}
+.af-item{
+  display:flex;align-items:flex-start;gap:12px;padding:12px;
+  background:var(--s2);border:1px solid var(--border);border-radius:10px;
+}
+.af-dot{
+  width:32px;height:32px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+}
+.af-dot.blue{background:rgba(79,142,247,.15);}
+.af-dot.green{background:rgba(34,197,94,.15);}
+.af-dot.gold{background:rgba(245,158,11,.15);}
+.af-dot.red{background:rgba(244,63,94,.15);}
+.af-content .af-title{font-size:.85rem;font-weight:600;margin-bottom:2px;}
+.af-content .af-sub{font-size:.78rem;color:var(--text2);}
+.af-time{font-size:.72rem;color:var(--text3);margin-left:auto;flex-shrink:0;}
+
+/* ─── LEADERBOARD ─── */
+.lb-item{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;
+  border-radius:10px;margin-bottom:6px;background:var(--s2);border:1px solid var(--border);
+}
+.lb-rank{width:22px;font-size:.85rem;font-weight:800;text-align:center;color:var(--text3);}
+.lb-rank.gold{color:var(--gold);}
+.lb-rank.silver{color:#94a3b8;}
+.lb-rank.bronze{color:#b45309;}
+.lb-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0;}
+.lb-name{flex:1;font-size:.85rem;font-weight:600;}
+.lb-points{font-size:.82rem;font-weight:800;color:var(--gold);}
+
+/* ─── CHAT / MESSAGE ─── */
+.chat-wrap{display:grid;grid-template-columns:240px 1fr;height:calc(100vh - 180px);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.chat-list{border-right:1px solid var(--border);overflow-y:auto;background:var(--s1);}
+.chat-search{padding:12px;border-bottom:1px solid var(--border);}
+.chat-search input{width:100%;padding:8px 12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.83rem;outline:none;}
+.chat-item{padding:12px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
+.chat-item:hover{background:var(--s2);}
+.chat-item.active{background:rgba(79,142,247,.08);}
+.ci-name{font-size:.85rem;font-weight:700;margin-bottom:2px;}
+.ci-last{font-size:.75rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci-time{font-size:.68rem;color:var(--text3);}
+.chat-window{display:flex;flex-direction:column;background:var(--bg);}
+.chat-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--s1);}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:68%;padding:10px 14px;border-radius:12px;font-size:.87rem;line-height:1.5;}
+.msg.mine{background:rgba(79,142,247,.18);border:1px solid rgba(79,142,247,.2);margin-left:auto;border-bottom-right-radius:4px;}
+.msg.theirs{background:var(--s2);border:1px solid var(--border);margin-right:auto;border-bottom-left-radius:4px;}
+.msg-time{font-size:.68rem;color:var(--text3);margin-top:3px;text-align:right;}
+.chat-input-wrap{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;background:var(--s1);}
+.chat-input{flex:1;padding:10px 14px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;outline:none;}
+.chat-input:focus{border-color:var(--blue);}
+.chat-send{padding:10px 16px;background:var(--blue);border:none;border-radius:10px;color:#fff;cursor:pointer;font-size:.88rem;font-weight:700;transition:all .2s;}
+.chat-send:hover{background:var(--blue2);}
+
+/* ─── QUIZ / POLLS ─── */
+.quiz-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;}
+.quiz-q{font-size:.95rem;font-weight:700;margin-bottom:14px;line-height:1.5;}
+.quiz-options{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{
+  padding:11px 14px;background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;cursor:pointer;transition:all .2s;font-size:.88rem;font-weight:500;
+  display:flex;align-items:center;gap:10px;
+}
+.quiz-opt:hover{border-color:var(--blue);}
+.quiz-opt.selected{background:rgba(79,142,247,.12);border-color:var(--blue);color:var(--blue);}
+.quiz-opt.correct{background:rgba(34,197,94,.1);border-color:var(--green);color:var(--green);}
+.quiz-opt.wrong{background:rgba(244,63,94,.1);border-color:var(--red);color:var(--red);}
+.opt-circle{width:22px;height:22px;border-radius:50%;border:2px solid currentColor;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;}
+
+/* ─── EMPTY STATE ─── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty-state .es-icon{font-size:3rem;margin-bottom:12px;opacity:.4;}
+.empty-state h3{font-size:1rem;font-weight:700;color:var(--text2);margin-bottom:6px;}
+.empty-state p{font-size:.85rem;}
+
+/* ─── DETAIL VIEW ─── */
+.detail-back{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text2);font-size:.85rem;font-weight:600;margin-bottom:20px;width:fit-content;}
+.detail-back:hover{color:var(--blue);}
+.detail-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius);padding:28px;}
+.detail-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;margin-bottom:12px;line-height:1.4;}
+.detail-body{font-size:.92rem;color:var(--text2);line-height:1.8;margin-bottom:20px;}
+.detail-meta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
+
+/* ─── TEACHER ANSWER FORM ─── */
+.answer-form{background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:20px;}
+.answer-form h3{font-size:.95rem;font-weight:700;margin-bottom:14px;}
+.answer-form textarea{width:100%;padding:12px 14px;background:var(--s1);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.88rem;resize:vertical;min-height:100px;outline:none;line-height:1.6;}
+.answer-form textarea:focus{border-color:var(--blue);}
+.answer-form-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center;}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:960px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:translateX(0);}
+  #main{margin-left:0;}
+  .widget-grid{grid-template-columns:1fr;}
+  .schedule-grid{grid-template-columns:repeat(3,1fr);}
+  .chat-wrap{grid-template-columns:1fr;}
+  .chat-list{display:none;}
+}
+@media(max-width:600px){
+  #topbar{padding:0 14px;}
+  #main{padding:16px;}
+  .ph h1{font-size:1.3rem;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .video-grid{grid-template-columns:1fr;}
+  .resource-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ─── TAG/CHIP ─── */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700;background:var(--s3);color:var(--text2);}
+
+/* ─── TOGGLE ─── */
+.toggle-wrap{display:flex;align-items:center;gap:8px;}
+.toggle{position:relative;width:40px;height:22px;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--s3);border-radius:11px;cursor:pointer;transition:.3s;}
+.toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+input:checked+.toggle-slider{background:var(--blue);}
+input:checked+.toggle-slider::before{transform:translateX(18px);}
+.toggle-label{font-size:.82rem;color:var(--text2);}
+
+/* ─── SECTION TABS ─── */
+.section-tabs{display:flex;gap:4px;background:var(--s2);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content;}
+.stab{
+  padding:7px 16px;border:none;border-radius:7px;font-size:.83rem;font-weight:600;
+  cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;
+}
+.stab.active{background:var(--s4);color:var(--text);}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div id="toast-container"></div>
+
+<!-- ═══ NOTIFICATION PANEL ═══ -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title">🔔 Notifications</span>
+    <button class="btn btn-sm btn-outline" onclick="clearNotifs()">Clear all</button>
+  </div>
+  <div class="notif-list" id="notif-list"></div>
+</div>
+
+<!-- ═══════════════════════ AUTH SCREEN ═══════════════════════ -->
+<div id="auth-screen">
+  <div class="grid-bg"></div>
+  <div class="auth-box">
+    <div class="auth-logo-block">
+      <div class="auth-icon">🎓</div>
+      <div class="auth-brand"><em>Edu</em>Nest</div>
+      <div class="auth-tagline">Your private college learning portal</div>
+    </div>
+    <div class="auth-card" id="auth-card">
+      <!-- LOGIN FORM -->
+      <div id="login-form-wrap">
+        <div class="role-tabs">
+          <button class="rtab on s" onclick="setAuthRole('student',this)">👨‍🎓 Student</button>
+          <button class="rtab t" onclick="setAuthRole('teacher',this)">👩‍🏫 Teacher</button>
+        </div>
+        <div class="err-box" id="login-err"></div>
+        <div class="fld">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="you@college.edu">
+        </div>
+        <div class="fld">
+          <label>Password</label>
+          <input type="password" id="login-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="btn-main" onclick="doLogin()" style="margin-top:6px">Sign In →</button>
+        <div class="divider">or</div>
+        <div class="auth-alt">Don't have an account? <a onclick="showReg()">Register here</a></div>
+        <div style="margin-top:14px;padding:12px;background:var(--s2);border-radius:10px;font-size:.78rem;color:var(--text2);">
+          <strong style="color:var(--text)">Demo accounts:</strong><br>
+          Student: student@demo.com / 1234 &nbsp;|&nbsp; Teacher: teacher@demo.com / 1234
+        </div>
+      </div>
+      <!-- REGISTER FORM -->
+      <div id="reg-form-wrap" style="display:none">
+        <div class="role-tabs">
+          <button class="rtab on s" id="reg-role-s" onclick="setRegRole('student')">👨‍🎓 Student</button>
+          <button class="rtab t" id="reg-role-t" onclick="setRegRole('teacher')">👩‍🏫 Teacher</button>
+        </div>
+        <div class="err-box" id="reg-err"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fld"><label>First Name</label><input type="text" id="reg-first" placeholder="First"></div>
+          <div class="fld"><label>Last Name</label><input type="text" id="reg-last" placeholder="Last"></div>
+        </div>
+        <div class="fld"><label>Email</label><input type="email" id="reg-email" placeholder="you@college.edu"></div>
+        <div class="fld"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 4 chars"></div>
+        <div class="fld" id="reg-roll-wrap">
+          <label>Roll Number</label><input type="text" id="reg-roll" placeholder="e.g. CS2024001">
+        </div>
+        <div class="fld" id="reg-dept-wrap">
+          <label>Department</label>
+          <select id="reg-dept">
+            <option value="">Select department</option>
+            <option>Computer Science</option><option>Mathematics</option>
+            <option>Physics</option><option>Chemistry</option>
+            <option>Biology</option><option>English</option><option>History</option>
+          </select>
+        </div>
+        <div class="fld" id="reg-year-wrap">
+          <label>Year</label>
+          <select id="reg-year">
+            <option value="">Select year</option>
+            <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+          </select>
+        </div>
+        <div class="fld" id="reg-subject-wrap" style="display:none">
+          <label>Subject You Teach</label>
+          <select id="reg-subject">
+            <option value="">Select subject</option>
+            <option>Mathematics</option><option>Physics</option><option>Chemistry</option>
+            <option>Computer Science</option><option>English</option><option>Biology</option><option>History</option>
+          </select>
+        </div>
+        <button class="btn-main" onclick="doRegister()">Create Account →</button>
+        <div class="auth-alt" style="margin-top:14px">Already registered? <a onclick="showLogin()">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ APP SHELL ═══════════════════════ -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="topbar-logo"><em>Edu</em>Nest</div>
+    <div class="topbar-sep"></div>
+    <span class="topbar-context" id="topbar-ctx"></span>
+    <div class="topbar-right">
+      <button class="notif-btn" id="notif-toggle" onclick="toggleNotifPanel()">
+        🔔<span class="notif-dot" id="notif-dot"></span>
+      </button>
+      <div class="user-pill">
+        <div class="u-avatar" id="topbar-avatar"></div>
+        <div class="u-info">
+          <span class="u-name" id="topbar-name"></span>
+          <span class="u-role" id="topbar-role"></span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">⏻ Logout</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="nav-section" id="student-nav" style="display:none">
+      <div class="nav-label">Student Menu</div>
+      <div class="nav-item active" onclick="showPage('s-dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="showPage('s-doubts')"><span class="nav-icon">❓</span>My Doubts<span class="nav-badge badge-red" id="s-open-badge">0</span></div>
+      <div class="nav-item" onclick="showPage('s-ask')"><span class="nav-icon">✏️</span>Post a Doubt</div>
+      <div class="nav-item" onclick="showPage('s-browse')"><span class="nav-icon">🔍</span>Browse Q&A</div>
+    </div>
+    <div class="nav-section" id="student-nav2" style="display:none">
+      <div class="nav-label">Resources</div>
+      <div class="nav-item" onclick="showPage('s-videos')"><span class="nav-icon">🎬</span>Video Library</div>
+      <div class="nav-item" onclick="showPage('s-notes')"><span class="nav-icon">📄</span>Notes & Files</div>
+      <div class="nav-item" onclick="showPage('s-announcements')"><span class="nav-icon">📢</span>Announcements<span class="nav-badge badge-gold" id="s-ann-badge">0</span></div>
+      <div class="nav-item" onclick="showPage('s-schedule')"><span class="nav-icon">📅</span>Timetable</div>
+      <div class="nav-item" onclick="showPage('s-quiz')"><span class="nav-icon">🧠</span>Quizzes</div>
+      <div class="nav-item" onclick="showPage('s-leaderboard')"><span class="nav-icon">🏆</span>Leaderboard</div>
+      <div class="nav-item" onclick="showPage('s-chat')"><span class="nav-icon">💬</span>Messages</div>
+      <div class="nav-item" onclick="showPage('s-profile')"><span class="nav-icon">👤</span>My Profile</div>
+    </div>
+
+    <div class="nav-section" id="teacher-nav" style="display:none">
+      <div class="nav-label">Teacher Menu</div>
+      <div class="nav-item active" onclick="showPage('t-dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+      <div class="nav-item" onclick="showPage('t-doubts')"><span class="nav-icon">❓</span>Pending Doubts<span class="nav-badge badge-red" id="t-pend-badge">0</span></div>
+      <div class="nav-item" onclick="showPage('t-answered')"><span class="nav-icon">✅</span>Answered</div>
+      <div class="nav-item" onclick="showPage('t-all-doubts')"><span class="nav-icon">📋</span>All Q&A</div>
+    </div>
+    <div class="nav-section" id="teacher-nav2" style="display:none">
+      <div class="nav-label">Content</div>
+      <div class="nav-item" onclick="showPage('t-upload-video')"><span class="nav-icon">🎬</span>Upload Video</div>
+      <div class="nav-item" onclick="showPage('t-manage-videos')"><span class="nav-icon">📹</span>Manage Videos</div>
+      <div class="nav-item" onclick="showPage('t-upload-notes')"><span class="nav-icon">📄</span>Upload Notes</div>
+      <div class="nav-item" onclick="showPage('t-announce')"><span class="nav-icon">📢</span>Announcements</div>
+      <div class="nav-item" onclick="showPage('t-quiz')"><span class="nav-icon">🧠</span>Create Quiz</div>
+      <div class="nav-item" onclick="showPage('t-students')"><span class="nav-icon">👥</span>Students</div>
+      <div class="nav-item" onclick="showPage('t-schedule')"><span class="nav-icon">📅</span>Timetable</div>
+      <div class="nav-item" onclick="showPage('t-chat')"><span class="nav-icon">💬</span>Messages</div>
+      <div class="nav-item" onclick="showPage('t-profile')"><span class="nav-icon">👤</span>My Profile</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+
+    <!-- ══════ STUDENT PAGES ══════ -->
+
+    <!-- S: DASHBOARD -->
+    <div class="page" id="page-s-dashboard">
+      <div class="ph">
+        <div class="ph-left"><h1>Welcome back, <span id="s-welcome-name" style="color:var(--blue)"></span>! 👋</h1><p>Here's your learning overview</p></div>
+        <button class="btn btn-primary" onclick="showPage('s-ask')">+ Post a Doubt</button>
+      </div>
+      <div class="stats-row" id="s-stats-row"></div>
+      <div class="widget-grid">
+        <div>
+          <div class="card"><div class="card-header"><span class="card-title">📝 Recent Doubts</span><button class="btn btn-sm btn-outline" onclick="showPage('s-doubts')">View All</button></div>
+          <div class="card-body"><div id="s-recent-doubts"></div></div></div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px"><div class="card-header"><span class="card-title">🏆 Top Learners</span></div>
+          <div class="card-body"><div id="s-leaderboard-mini"></div></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">🔔 Recent Activity</span></div>
+          <div class="card-body"><div id="s-activity-feed"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S: MY DOUBTS -->
+    <div class="page" id="page-s-doubts">
+      <div class="ph">
+        <div class="ph-left"><h1>My Doubts</h1><p>Track and manage your posted questions</p></div>
+        <button class="btn btn-primary" onclick="showPage('s-ask')">+ New Doubt</button>
+      </div>
+      <div class="search-bar">
+        <div class="search-input-wrap"><span class="si-icon">🔍</span><input type="text" placeholder="Search your doubts..." oninput="filterDoubts('my',this.value)"></div>
+        <select class="filter-select" onchange="filterDoubts('my-status',this.value)"><option value="">All Status</option><option value="open">Open</option><option value="answered">Answered</option><option value="pending">Pending</option></select>
+        <select class="filter-select" onchange="filterDoubts('my-subject',this.value)"><option value="">All Subjects</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option></select>
+      </div>
+      <div class="doubt-list" id="s-my-doubts-list"></div>
+    </div>
+
+    <!-- S: ASK DOUBT -->
+    <div class="page" id="page-s-ask">
+      <div class="ph"><div class="ph-left"><h1>Post a Doubt</h1><p>Ask your question and get help from teachers</p></div></div>
+      <div style="max-width:680px">
+        <div class="card"><div class="card-body">
+          <div class="fld"><label>Question Title *</label><input type="text" id="ask-title" placeholder="Write a clear, specific title for your question"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fld"><label>Subject *</label>
+              <select id="ask-subject"><option value="">Select subject</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option><option>General</option></select>
+            </div>
+            <div class="fld"><label>Priority</label>
+              <select id="ask-priority"><option value="normal">Normal</option><option value="urgent">Urgent</option><option value="low">Low</option></select>
+            </div>
+          </div>
+          <div class="fld"><label>Detailed Description *</label><textarea id="ask-body" rows="6" placeholder="Describe your doubt in detail. Include what you've tried, what you don't understand, and any relevant context..."></textarea></div>
+          <div class="fld"><label>Tags (comma separated)</label><input type="text" id="ask-tags" placeholder="e.g. integration, calculus, limits"></div>
+          <div class="fld"><label>Attach Image / File (optional)</label>
+            <div class="upload-zone" id="ask-upload-zone" onclick="document.getElementById('ask-file').click()">
+              <input type="file" id="ask-file" accept="image/*,.pdf" style="display:none" onchange="handleAskFile(this)">
+              <div class="uz-icon">📎</div>
+              <div class="uz-title">Click to attach file</div>
+              <div class="uz-sub">Images or PDF supported</div>
+              <div class="uz-formats"><span class="uz-fmt">JPG</span><span class="uz-fmt">PNG</span><span class="uz-fmt">PDF</span></div>
+            </div>
+            <div class="upload-preview" id="ask-file-preview"></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn btn-primary" onclick="submitDoubt()">🚀 Submit Doubt</button>
+            <button class="btn btn-outline" onclick="clearDoubtForm()">Clear</button>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- S: BROWSE Q&A -->
+    <div class="page" id="page-s-browse">
+      <div class="ph"><div class="ph-left"><h1>Browse Q&A</h1><p>Explore all questions and answers in the portal</p></div></div>
+      <div class="search-bar">
+        <div class="search-input-wrap"><span class="si-icon">🔍</span><input type="text" placeholder="Search all questions..." oninput="filterDoubts('all',this.value)"></div>
+        <select class="filter-select" onchange="filterDoubts('all-subject',this.value)"><option value="">All Subjects</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option></select>
+        <select class="filter-select" onchange="filterDoubts('all-status2',this.value)"><option value="">All Status</option><option value="answered">Answered</option><option value="open">Unanswered</option></select>
+      </div>
+      <div class="doubt-list" id="s-browse-list"></div>
+    </div>
+
+    <!-- S: VIDEO LIBRARY -->
+    <div class="page" id="page-s-videos">
+      <div class="ph"><div class="ph-left"><h1>🎬 Video Library</h1><p>Watch lecture recordings and tutorials</p></div></div>
+      <div class="search-bar">
+        <div class="search-input-wrap"><span class="si-icon">🔍</span><input type="text" placeholder="Search videos..." oninput="filterVideos(this.value)"></div>
+        <select class="filter-select" onchange="filterVideoSubject(this.value)"><option value="">All Subjects</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option></select>
+      </div>
+      <div class="video-grid" id="s-video-grid"></div>
+    </div>
+
+    <!-- S: NOTES -->
+    <div class="page" id="page-s-notes">
+      <div class="ph"><div class="ph-left"><h1>📄 Notes & Files</h1><p>Download study materials shared by teachers</p></div></div>
+      <div class="section-tabs">
+        <button class="stab active" onclick="filterNoteType('all',this)">All</button>
+        <button class="stab" onclick="filterNoteType('pdf',this)">PDFs</button>
+        <button class="stab" onclick="filterNoteType('doc',this)">Documents</button>
+        <button class="stab" onclick="filterNoteType('ppt',this)">Slides</button>
+      </div>
+      <div class="resource-grid" id="s-notes-grid"></div>
+    </div>
+
+    <!-- S: ANNOUNCEMENTS -->
+    <div class="page" id="page-s-announcements">
+      <div class="ph"><div class="ph-left"><h1>📢 Announcements</h1><p>Important updates from your teachers</p></div></div>
+      <div id="s-ann-list"></div>
+    </div>
+
+    <!-- S: SCHEDULE -->
+    <div class="page" id="page-s-schedule">
+      <div class="ph"><div class="ph-left"><h1>📅 Weekly Timetable</h1><p>Your class schedule for the week</p></div></div>
+      <div id="s-schedule-wrap"></div>
+    </div>
+
+    <!-- S: QUIZ -->
+    <div class="page" id="page-s-quiz">
+      <div class="ph"><div class="ph-left"><h1>🧠 Quizzes</h1><p>Test your knowledge with teacher-created quizzes</p></div></div>
+      <div id="s-quiz-list"></div>
+    </div>
+
+    <!-- S: LEADERBOARD -->
+    <div class="page" id="page-s-leaderboard">
+      <div class="ph"><div class="ph-left"><h1>🏆 Leaderboard</h1><p>Top students based on participation and correct answers</p></div></div>
+      <div style="max-width:500px" id="s-lb-full"></div>
+    </div>
+
+    <!-- S: CHAT -->
+    <div class="page" id="page-s-chat">
+      <div class="ph"><div class="ph-left"><h1>💬 Messages</h1><p>Direct messages with teachers</p></div></div>
+      <div class="chat-wrap">
+        <div class="chat-list">
+          <div class="chat-search"><input type="text" placeholder="Search..."></div>
+          <div id="s-chat-list"></div>
+        </div>
+        <div class="chat-window">
+          <div class="chat-header" id="s-chat-header"><span>Select a conversation</span></div>
+          <div class="chat-messages" id="s-chat-msgs"></div>
+          <div class="chat-input-wrap">
+            <input type="text" class="chat-input" id="s-chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg('student')">
+            <button class="chat-send" onclick="sendMsg('student')">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S: PROFILE -->
+    <div class="page" id="page-s-profile">
+      <div class="ph"><div class="ph-left"><h1>👤 My Profile</h1></div><button class="btn btn-primary" onclick="saveProfile('student')">💾 Save Changes</button></div>
+      <div id="s-profile-wrap"></div>
+    </div>
+
+    <!-- S: DOUBT DETAIL -->
+    <div class="page" id="page-s-doubt-detail">
+      <div class="detail-back" onclick="showPage('s-doubts')">← Back to My Doubts</div>
+      <div id="s-doubt-detail-content"></div>
+    </div>
+
+    <!-- ══════ TEACHER PAGES ══════ -->
+
+    <!-- T: DASHBOARD -->
+    <div class="page" id="page-t-dashboard">
+      <div class="ph">
+        <div class="ph-left"><h1>Teacher Dashboard 👩‍🏫</h1><p>Welcome back, <span id="t-welcome-name" style="color:var(--teacher)"></span></p></div>
+      </div>
+      <div class="stats-row" id="t-stats-row"></div>
+      <div class="widget-grid">
+        <div>
+          <div class="card"><div class="card-header"><span class="card-title">🔴 Pending Doubts</span><button class="btn btn-sm btn-outline" onclick="showPage('t-doubts')">View All</button></div>
+          <div class="card-body"><div id="t-pending-preview"></div></div></div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px"><div class="card-header"><span class="card-title">📊 Subject Breakdown</span></div>
+          <div class="card-body" id="t-subject-stats"></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">🔔 Recent Activity</span></div>
+          <div class="card-body"><div id="t-activity-feed"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T: PENDING DOUBTS -->
+    <div class="page" id="page-t-doubts">
+      <div class="ph"><div class="ph-left"><h1>Pending Doubts</h1><p>Answer student questions</p></div></div>
+      <div class="search-bar">
+        <div class="search-input-wrap"><span class="si-icon">🔍</span><input type="text" placeholder="Search doubts..." oninput="filterDoubts('teacher-pend',this.value)"></div>
+        <select class="filter-select" onchange="filterDoubts('t-subject',this.value)"><option value="">All Subjects</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option></select>
+        <select class="filter-select"><option value="">All Priority</option><option value="urgent">Urgent</option><option value="normal">Normal</option></select>
+      </div>
+      <div class="doubt-list" id="t-pend-list"></div>
+    </div>
+
+    <!-- T: ANSWERED -->
+    <div class="page" id="page-t-answered">
+      <div class="ph"><div class="ph-left"><h1>Answered Doubts</h1><p>Questions you've already resolved</p></div></div>
+      <div class="doubt-list" id="t-ans-list"></div>
+    </div>
+
+    <!-- T: ALL Q&A -->
+    <div class="page" id="page-t-all-doubts">
+      <div class="ph"><div class="ph-left"><h1>All Q&A</h1><p>Complete question and answer archive</p></div></div>
+      <div class="doubt-list" id="t-all-list"></div>
+    </div>
+
+    <!-- T: DOUBT DETAIL (answer view) -->
+    <div class="page" id="page-t-doubt-detail">
+      <div class="detail-back" onclick="showPage('t-doubts')">← Back to Doubts</div>
+      <div id="t-doubt-detail-content"></div>
+    </div>
+
+    <!-- T: UPLOAD VIDEO -->
+    <div class="page" id="page-t-upload-video">
+      <div class="ph"><div class="ph-left"><h1>🎬 Upload Video</h1><p>Share lecture recordings with students</p></div></div>
+      <div style="max-width:680px">
+        <div class="card"><div class="card-body">
+          <div class="fld"><label>Video Title *</label><input type="text" id="vid-title" placeholder="e.g. Introduction to Calculus – Chapter 1"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fld"><label>Subject *</label>
+              <select id="vid-subject"><option value="">Select subject</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option></select>
+            </div>
+            <div class="fld"><label>Topic / Chapter</label><input type="text" id="vid-topic" placeholder="e.g. Derivatives"></div>
+          </div>
+          <div class="fld"><label>Description</label><textarea id="vid-desc" rows="3" placeholder="What will students learn from this video?"></textarea></div>
+          <div class="fld"><label>Upload Video File *</label>
+            <div class="upload-zone" id="vid-upload-zone">
+              <input type="file" id="vid-file" accept="video/*" onchange="handleVideoUpload(this)">
+              <div class="uz-icon">🎬</div>
+              <div class="uz-title">Click or drag video here</div>
+              <div class="uz-sub">Select a video file from your device</div>
+              <div class="uz-formats"><span class="uz-fmt">MP4</span><span class="uz-fmt">MOV</span><span class="uz-fmt">AVI</span><span class="uz-fmt">WEBM</span></div>
+            </div>
+            <div class="upload-preview" id="vid-file-preview"></div>
+          </div>
+          <div class="fld"><label>Thumbnail Image (optional)</label>
+            <div class="upload-zone" style="padding:20px" onclick="document.getElementById('vid-thumb').click()">
+              <input type="file" id="vid-thumb" accept="image/*" style="display:none" onchange="handleThumbUpload(this)">
+              <div class="uz-icon">🖼️</div>
+              <div class="uz-title">Upload thumbnail</div>
+              <div class="uz-formats"><span class="uz-fmt">JPG</span><span class="uz-fmt">PNG</span></div>
+            </div>
+            <div class="upload-preview" id="vid-thumb-preview"></div>
+          </div>
+          <div class="fld" style="display:flex;align-items:center;gap:12px;margin-top:4px">
+            <label class="toggle-wrap" style="cursor:pointer">
+              <span class="toggle-label">Visible to students</span>
+              <label class="toggle"><input type="checkbox" id="vid-visible" checked><span class="toggle-slider"></span></label>
+            </label>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button class="btn btn-primary" onclick="uploadVideo()">🚀 Publish Video</button>
+            <button class="btn btn-outline" onclick="clearVideoForm()">Clear</button>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- T: MANAGE VIDEOS -->
+    <div class="page" id="page-t-manage-videos">
+      <div class="ph"><div class="ph-left"><h1>📹 My Videos</h1><p>Manage uploaded lecture videos</p></div><button class="btn btn-primary" onclick="showPage('t-upload-video')">+ Upload New</button></div>
+      <div class="video-grid" id="t-video-grid"></div>
+    </div>
+
+    <!-- T: UPLOAD NOTES -->
+    <div class="page" id="page-t-upload-notes">
+      <div class="ph"><div class="ph-left"><h1>📄 Upload Notes</h1><p>Share study materials with students</p></div></div>
+      <div style="max-width:680px">
+        <div class="card"><div class="card-body">
+          <div class="fld"><label>Title *</label><input type="text" id="note-title" placeholder="e.g. Chapter 3 – Thermodynamics Notes"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="fld"><label>Subject *</label>
+              <select id="note-subject"><option value="">Select subject</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option></select>
+            </div>
+            <div class="fld"><label>File Type</label>
+              <select id="note-type"><option value="pdf">PDF</option><option value="doc">Document</option><option value="ppt">Slides/PPT</option><option value="other">Other</option></select>
+            </div>
+          </div>
+          <div class="fld"><label>Description</label><textarea id="note-desc" rows="3" placeholder="Brief description of what this material covers..."></textarea></div>
+          <div class="fld"><label>Upload File *</label>
+            <div class="upload-zone" onclick="document.getElementById('note-file').click()">
+              <input type="file" id="note-file" style="display:none" onchange="handleNoteUpload(this)">
+              <div class="uz-icon">📎</div>
+              <div class="uz-title">Click to select file</div>
+              <div class="uz-sub">Any file type supported</div>
+              <div class="uz-formats"><span class="uz-fmt">PDF</span><span class="uz-fmt">DOCX</span><span class="uz-fmt">PPTX</span><span class="uz-fmt">ZIP</span></div>
+            </div>
+            <div class="upload-preview" id="note-file-preview"></div>
+          </div>
+          <button class="btn btn-primary" onclick="uploadNote()" style="margin-top:8px">📤 Upload Material</button>
+        </div></div>
+      </div>
+      <div style="margin-top:28px">
+        <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:14px">📂 Uploaded Materials</h2>
+        <div class="resource-grid" id="t-notes-grid"></div>
+      </div>
+    </div>
+
+    <!-- T: ANNOUNCEMENTS -->
+    <div class="page" id="page-t-announce">
+      <div class="ph"><div class="ph-left"><h1>📢 Announcements</h1><p>Post important updates for all students</p></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+        <div class="card"><div class="card-header"><span class="card-title">Post New Announcement</span></div>
+          <div class="card-body">
+            <div class="fld"><label>Title *</label><input type="text" id="ann-title" placeholder="Announcement title"></div>
+            <div class="fld"><label>Priority</label>
+              <select id="ann-priority"><option value="normal">Normal</option><option value="urgent">🔴 Urgent</option><option value="info">ℹ️ Info</option></select>
+            </div>
+            <div class="fld"><label>Message *</label><textarea id="ann-body" rows="5" placeholder="Write your announcement here..."></textarea></div>
+            <button class="btn btn-primary" onclick="postAnnouncement()">📢 Post Announcement</button>
+          </div>
+        </div>
+        <div>
+          <h2 style="font-size:1rem;font-weight:700;margin-bottom:14px">Published Announcements</h2>
+          <div id="t-ann-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T: CREATE QUIZ -->
+    <div class="page" id="page-t-quiz">
+      <div class="ph"><div class="ph-left"><h1>🧠 Create Quiz</h1><p>Design knowledge-check quizzes for students</p></div></div>
+      <div style="max-width:700px">
+        <div class="card" style="margin-bottom:16px"><div class="card-body">
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px">
+            <div class="fld"><label>Quiz Title *</label><input type="text" id="quiz-title" placeholder="e.g. Chapter 2 – Quick Test"></div>
+            <div class="fld"><label>Subject</label>
+              <select id="quiz-subject"><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option></select>
+            </div>
+          </div>
+        </div></div>
+        <div id="quiz-questions-wrap"></div>
+        <button class="btn btn-outline" onclick="addQuizQuestion()" style="margin-bottom:16px;width:100%;justify-content:center">+ Add Question</button>
+        <button class="btn btn-primary" onclick="publishQuiz()" style="width:100%;justify-content:center">🚀 Publish Quiz</button>
+      </div>
+      <div style="margin-top:32px"><h2 style="font-size:1.1rem;font-weight:700;margin-bottom:14px">Published Quizzes</h2><div id="t-quiz-list"></div></div>
+    </div>
+
+    <!-- T: STUDENTS -->
+    <div class="page" id="page-t-students">
+      <div class="ph"><div class="ph-left"><h1>👥 Students</h1><p>Registered students in your portal</p></div></div>
+      <div class="search-bar"><div class="search-input-wrap"><span class="si-icon">🔍</span><input type="text" placeholder="Search students..." oninput="filterStudents(this.value)"></div></div>
+      <div id="t-students-list"></div>
+    </div>
+
+    <!-- T: SCHEDULE MANAGER -->
+    <div class="page" id="page-t-schedule">
+      <div class="ph"><div class="ph-left"><h1>📅 Manage Timetable</h1></div><button class="btn btn-primary" onclick="openScheduleModal()">+ Add Class</button></div>
+      <div id="t-schedule-wrap"></div>
+    </div>
+
+    <!-- T: CHAT -->
+    <div class="page" id="page-t-chat">
+      <div class="ph"><div class="ph-left"><h1>💬 Messages</h1><p>Communicate with students</p></div></div>
+      <div class="chat-wrap">
+        <div class="chat-list">
+          <div class="chat-search"><input type="text" placeholder="Search..."></div>
+          <div id="t-chat-list"></div>
+        </div>
+        <div class="chat-window">
+          <div class="chat-header" id="t-chat-header"><span>Select a conversation</span></div>
+          <div class="chat-messages" id="t-chat-msgs"></div>
+          <div class="chat-input-wrap">
+            <input type="text" class="chat-input" id="t-chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg('teacher')">
+            <button class="chat-send" onclick="sendMsg('teacher')">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- T: PROFILE -->
+    <div class="page" id="page-t-profile">
+      <div class="ph"><div class="ph-left"><h1>👤 My Profile</h1></div><button class="btn btn-primary" onclick="saveProfile('teacher')">💾 Save Changes</button></div>
+      <div id="t-profile-wrap"></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══ MODALS ═══ -->
+<!-- Video Player Modal -->
+<div class="modal-overlay video-player-modal" id="video-modal">
+  <div class="modal" style="max-width:820px">
+    <div class="modal-header">
+      <span class="modal-title" id="vmodal-title">Video</span>
+      <button class="btn-close" onclick="closeVideoModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="video-player-wrap"><video id="vmodal-player" controls></video></div>
+      <div id="vmodal-info"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Add Modal -->
+<div class="modal-overlay" id="schedule-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><span class="modal-title">Add Class to Schedule</span><button class="btn-close" onclick="closeModal('schedule-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="fld"><label>Day</label>
+        <select id="sch-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fld"><label>Start Time</label><input type="time" id="sch-start" value="09:00"></div>
+        <div class="fld"><label>End Time</label><input type="time" id="sch-end" value="10:00"></div>
+      </div>
+      <div class="fld"><label>Subject</label>
+        <select id="sch-subject"><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>Biology</option><option>History</option></select>
+      </div>
+      <div class="fld"><label>Room / Location</label><input type="text" id="sch-room" placeholder="e.g. Room 204, Lab A"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('schedule-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addScheduleSlot()">Add Class</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATA STORE  (localStorage-backed)
+// ═══════════════════════════════════════════════
+const DB = {
+  get(k){try{return JSON.parse(localStorage.getItem('en_'+k))||null}catch{return null}},
+  set(k,v){localStorage.setItem('en_'+k,JSON.stringify(v))},
+  users(){return this.get('users')||[]},
+  doubts(){return this.get('doubts')||[]},
+  videos(){return this.get('videos')||[]},
+  notes(){return this.get('notes')||[]},
+  announcements(){return this.get('announcements')||[]},
+  quizzes(){return this.get('quizzes')||[]},
+  schedule(){return this.get('schedule')||[]},
+  messages(){return this.get('messages')||{}},
+  notifications(){return this.get('notifications')||[]},
+  quizAttempts(){return this.get('quizAttempts')||{}}
+};
+
+// ─── SEED DEMO DATA ───
+function seedData(){
+  if(DB.get('seeded')) return;
+  DB.set('users',[
+    {id:'u1',name:'Alex Kumar',email:'student@demo.com',pass:'1234',role:'student',dept:'Computer Science',year:'3rd Year',roll:'CS2024001',avatar:'AK',points:340,joined:'2024-08-01'},
+    {id:'u2',name:'Dr. Priya Sharma',email:'teacher@demo.com',pass:'1234',role:'teacher',dept:'Mathematics',subject:'Mathematics',avatar:'PS',joined:'2023-06-01'},
+    {id:'u3',name:'Riya Mehta',email:'riya@demo.com',pass:'1234',role:'student',dept:'Physics',year:'2nd Year',roll:'PH2024015',avatar:'RM',points:290,joined:'2024-08-01'},
+    {id:'u4',name:'Arjun Singh',email:'arjun@demo.com',pass:'1234',role:'student',dept:'Mathematics',year:'3rd Year',roll:'MA2024007',avatar:'AS',points:180,joined:'2024-08-01'},
+  ]);
+  DB.set('doubts',[
+    {id:'d1',studentId:'u1',studentName:'Alex Kumar',title:'How do I solve differential equations using integrating factor method?',body:'I understand basic differentiation but when it comes to first-order linear ODEs, I get confused about when and how to apply the integrating factor. Can someone walk me through a step-by-step example?',subject:'Mathematics',priority:'urgent',status:'answered',tags:['ODE','integrating factor','calculus'],createdAt:'2024-11-10T09:00:00',answer:{teacherId:'u2',teacherName:'Dr. Priya Sharma',text:'Great question! The integrating factor method works as follows:\n\n1. Write the equation in standard form: dy/dx + P(x)y = Q(x)\n2. Calculate the integrating factor: μ(x) = e^∫P(x)dx\n3. Multiply both sides by μ(x)\n4. The left side becomes d/dx[μ(x)·y]\n5. Integrate both sides and solve for y\n\nExample: dy/dx + 2y = 4x\nHere P(x)=2, so μ=e^(2x)\nMultiply: e^(2x)dy/dx + 2e^(2x)y = 4xe^(2x)\nThis simplifies to d/dx[e^(2x)y] = 4xe^(2x)\nIntegrate both sides to get the solution.',answeredAt:'2024-11-10T11:30:00'}},
+    {id:'d2',studentId:'u3',studentName:'Riya Mehta',title:'Why does light bend when passing through a glass prism?',body:'We studied refraction in class but I still dont fully understand the physics behind why different colors of light bend at different angles inside a prism.',subject:'Physics',priority:'normal',status:'open',tags:['optics','refraction','prism'],createdAt:'2024-11-11T14:00:00',answer:null},
+    {id:'d3',studentId:'u1',studentName:'Alex Kumar',title:'What is the difference between RAM and ROM in computer architecture?',body:'I know they are both types of memory, but what are the fundamental differences in how they work, their speed, volatility, and use cases in modern computing?',subject:'Computer Science',priority:'normal',status:'open',tags:['memory','RAM','ROM','computer architecture'],createdAt:'2024-11-12T10:00:00',answer:null},
+    {id:'d4',studentId:'u4',studentName:'Arjun Singh',title:'How to find eigenvalues of a 3x3 matrix?',body:'I can find eigenvalues for 2x2 matrices but the characteristic polynomial becomes a cubic equation for 3x3. Is there a systematic approach?',subject:'Mathematics',priority:'normal',status:'answered',tags:['linear algebra','eigenvalues','matrix'],createdAt:'2024-11-09T08:00:00',answer:{teacherId:'u2',teacherName:'Dr. Priya Sharma',text:'For a 3×3 matrix A, find eigenvalues by solving det(A - λI) = 0. This gives a cubic characteristic polynomial. Use rational root theorem or numerical methods. The three roots λ₁, λ₂, λ₃ are your eigenvalues. Then substitute each back to find the corresponding eigenvectors.',answeredAt:'2024-11-09T15:00:00'}},
+  ]);
+  DB.set('videos',[
+    {id:'v1',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Introduction to Calculus – Limits and Continuity',subject:'Mathematics',topic:'Limits',desc:'A comprehensive introduction to limits, their properties, and the concept of continuity in calculus.',duration:'42:15',views:234,createdAt:'2024-11-01',visible:true,fileData:null,thumbData:null},
+    {id:'v2',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Differentiation Rules – Chain Rule & Product Rule',subject:'Mathematics',topic:'Derivatives',desc:'Master the chain rule and product rule with worked examples.',duration:'38:40',views:187,createdAt:'2024-11-05',visible:true,fileData:null,thumbData:null},
+    {id:'v3',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Matrix Operations and Determinants',subject:'Mathematics',topic:'Linear Algebra',desc:'How to perform matrix multiplication and compute determinants.',duration:'55:20',views:142,createdAt:'2024-11-08',visible:true,fileData:null,thumbData:null},
+  ]);
+  DB.set('notes',[
+    {id:'n1',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Calculus – Chapter 1 Summary Notes',subject:'Mathematics',type:'pdf',desc:'Comprehensive notes covering limits, derivatives, and integrals.',size:'2.4 MB',createdAt:'2024-11-02'},
+    {id:'n2',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Linear Algebra Formula Sheet',subject:'Mathematics',type:'pdf',desc:'Quick reference for all important linear algebra formulas.',size:'1.1 MB',createdAt:'2024-11-06'},
+    {id:'n3',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Probability & Statistics Slides',subject:'Mathematics',type:'ppt',desc:'Week 5 lecture slides on probability distributions.',size:'5.8 MB',createdAt:'2024-11-09'},
+  ]);
+  DB.set('announcements',[
+    {id:'a1',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Mid-Semester Exam Schedule Released',body:'The mid-semester exams are scheduled for December 5–12. Detailed timetable has been posted on the notice board. Please check your respective subject exam dates and prepare accordingly.',priority:'urgent',createdAt:'2024-11-10'},
+    {id:'a2',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Extra Class on Integration – This Saturday',body:'There will be an extra class on Integration by Parts and Partial Fractions this Saturday at 10:00 AM in Room 201. Attendance is highly recommended for students who need additional practice.',priority:'normal',createdAt:'2024-11-08'},
+    {id:'a3',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Assignment 3 Due Date Extended',body:'Due to multiple requests, the deadline for Assignment 3 has been extended by 3 days. New deadline: November 18th, 11:59 PM. No further extensions will be granted.',priority:'info',createdAt:'2024-11-07'},
+  ]);
+  DB.set('quizzes',[
+    {id:'q1',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Calculus Quick Test',subject:'Mathematics',createdAt:'2024-11-08',questions:[
+      {q:'What is the derivative of sin(x)?',opts:['cos(x)','-cos(x)','sin(x)','-sin(x)'],correct:0},
+      {q:'What is ∫x² dx?',opts:['x³','x³/3 + C','3x²','2x'],correct:1},
+      {q:'The limit of sin(x)/x as x→0 is:',opts:['0','∞','1','undefined'],correct:2},
+    ]},
+    {id:'q2',teacherId:'u2',teacherName:'Dr. Priya Sharma',title:'Linear Algebra Basics',subject:'Mathematics',createdAt:'2024-11-10',questions:[
+      {q:'A matrix with equal rows and columns is called:',opts:['Row matrix','Square matrix','Column matrix','Zero matrix'],correct:1},
+      {q:'The determinant of an identity matrix is:',opts:['0','-1','1','Undefined'],correct:2},
+    ]},
+  ]);
+  DB.set('schedule',[
+    {id:'s1',day:'Monday',start:'09:00',end:'10:00',subject:'Mathematics',room:'Room 201'},
+    {id:'s2',day:'Monday',start:'11:00',end:'12:00',subject:'Computer Science',room:'Lab A'},
+    {id:'s3',day:'Tuesday',start:'10:00',end:'11:00',subject:'Physics',room:'Room 105'},
+    {id:'s4',day:'Wednesday',start:'09:00',end:'10:00',subject:'Mathematics',room:'Room 201'},
+    {id:'s5',day:'Wednesday',start:'14:00',end:'15:00',subject:'Chemistry',room:'Lab B'},
+    {id:'s6',day:'Thursday',start:'11:00',end:'12:00',subject:'Biology',room:'Room 302'},
+    {id:'s7',day:'Friday',start:'10:00',end:'11:00',subject:'Mathematics',room:'Room 201'},
+    {id:'s8',day:'Friday',start:'13:00',end:'14:00',subject:'English',room:'Room 110'},
+  ]);
+  DB.set('messages',{
+    'u1-u2':[
+      {from:'u1',text:'Hello Dr. Sharma, I had a question about the upcoming exam.',time:'2024-11-10T10:00:00'},
+      {from:'u2',text:'Sure Alex! What would you like to know?',time:'2024-11-10T10:05:00'},
+      {from:'u1',text:'Will the integration by parts be included?',time:'2024-11-10T10:06:00'},
+      {from:'u2',text:'Yes, Chapter 4 is fully included. Make sure to practice the examples from the textbook.',time:'2024-11-10T10:08:00'},
+    ]
+  });
+  DB.set('seeded', true);
+}
+
+// ═══════════════════════════════════════════════
+//  CURRENT STATE
+// ═══════════════════════════════════════════════
+let currentUser = null;
+let currentPage = '';
+let authRole = 'student';
+let regRole = 'student';
+let currentChatPeer = null;
+let quizQuestionCount = 0;
+let filterState = {doubts:'',subject:'',status:''};
+
+// ═══════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════
+function setAuthRole(r, btn){
+  authRole = r;
+  document.querySelectorAll('.role-tabs .rtab').forEach(b=>b.classList.remove('on','s','t'));
+  btn.classList.add('on', r==='student'?'s':'t');
+}
+function setRegRole(r){
+  regRole = r;
+  document.getElementById('reg-role-s').className='rtab'+(r==='student'?' on s':'');
+  document.getElementById('reg-role-t').className='rtab'+(r==='teacher'?' on t':'');
+  document.getElementById('reg-roll-wrap').style.display = r==='student'?'block':'none';
+  document.getElementById('reg-year-wrap').style.display = r==='student'?'block':'none';
+  document.getElementById('reg-subject-wrap').style.display = r==='teacher'?'block':'none';
+}
+function showReg(){document.getElementById('login-form-wrap').style.display='none';document.getElementById('reg-form-wrap').style.display='block';}
+function showLogin(){document.getElementById('login-form-wrap').style.display='block';document.getElementById('reg-form-wrap').style.display='none';}
+
+function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-err');
+  if(!email||!pass){err.textContent='Please fill in all fields.';err.style.display='block';return;}
+  const users = DB.users();
+  const user = users.find(u=>u.email===email && u.pass===pass && u.role===authRole);
+  if(!user){err.textContent='Invalid credentials or wrong role selected.';err.style.display='block';return;}
+  err.style.display='none';
+  currentUser = user;
+  DB.set('session', user.id);
+  initApp();
+}
+
+function doRegister(){
+  const first=document.getElementById('reg-first').value.trim();
+  const last=document.getElementById('reg-last').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  const dept=document.getElementById('reg-dept').value;
+  const err=document.getElementById('reg-err');
+  if(!first||!last||!email||!pass||!dept){err.textContent='Please fill all required fields.';err.style.display='block';return;}
+  const users=DB.users();
+  if(users.find(u=>u.email===email)){err.textContent='Email already registered.';err.style.display='block';return;}
+  if(pass.length<4){err.textContent='Password must be at least 4 characters.';err.style.display='block';return;}
+  const id='u'+Date.now();
+  const newUser={
+    id,name:first+' '+last,email,pass,role:regRole,dept,avatar:first[0]+last[0],
+    points:0,joined:new Date().toISOString().split('T')[0],
+    ...(regRole==='student'?{year:document.getElementById('reg-year').value,roll:document.getElementById('reg-roll').value}:{}),
+    ...(regRole==='teacher'?{subject:document.getElementById('reg-subject').value}:{})
+  };
+  users.push(newUser);
+  DB.set('users',users);
+  err.style.display='none';
+  toast('Account created! Please sign in.','success');
+  showLogin();
+  document.getElementById('login-email').value=email;
+}
+
+function logout(){
+  currentUser=null;DB.set('session',null);
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  toast('Logged out successfully.','info');
+}
+
+// ═══════════════════════════════════════════════
+//  APP INIT
+// ═══════════════════════════════════════════════
+function initApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+
+  // topbar
+  document.getElementById('topbar-name').textContent = currentUser.name;
+  document.getElementById('topbar-role').textContent = currentUser.role;
+  document.getElementById('topbar-role').className = 'u-role '+(currentUser.role==='student'?'s':'t');
+  document.getElementById('topbar-avatar').textContent = currentUser.avatar;
+  document.getElementById('topbar-avatar').className = 'u-avatar '+(currentUser.role==='student'?'u-av-s':'u-av-t');
+  document.getElementById('topbar-ctx').textContent = currentUser.role==='student'? (currentUser.dept+' · '+currentUser.year) : ('Subject: '+currentUser.subject);
+
+  // show correct nav
+  if(currentUser.role==='student'){
+    document.getElementById('student-nav').style.display='block';
+    document.getElementById('student-nav2').style.display='block';
+    document.getElementById('teacher-nav').style.display='none';
+    document.getElementById('teacher-nav2').style.display='none';
+    document.getElementById('s-welcome-name').textContent = currentUser.name.split(' ')[0];
+    showPage('s-dashboard');
+  } else {
+    document.getElementById('teacher-nav').style.display='block';
+    document.getElementById('teacher-nav2').style.display='block';
+    document.getElementById('student-nav').style.display='none';
+    document.getElementById('student-nav2').style.display='none';
+    document.getElementById('t-welcome-name').textContent = currentUser.name.split(' ')[0];
+    showPage('t-dashboard');
+  }
+  updateBadges();
+  loadNotifications();
+}
+
+// ═══════════════════════════════════════════════
+//  PAGE NAVIGATION
+// ═══════════════════════════════════════════════
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+  });
+  currentPage = id;
+  renderPage(id);
+  window.scrollTo(0,0);
+}
+
+function renderPage(id){
+  switch(id){
+    case 's-dashboard': renderSDashboard(); break;
+    case 's-doubts': renderSDoubts(); break;
+    case 's-browse': renderSBrowse(); break;
+    case 's-videos': renderSVideos(); break;
+    case 's-notes': renderSNotes(); break;
+    case 's-announcements': renderSAnn(); break;
+    case 's-schedule': renderSSchedule(); break;
+    case 's-quiz': renderSQuiz(); break;
+    case 's-leaderboard': renderSLeaderboard(); break;
+    case 's-chat': renderChat('student'); break;
+    case 's-profile': renderProfile('student'); break;
+    case 't-dashboard': renderTDashboard(); break;
+    case 't-doubts': renderTPending(); break;
+    case 't-answered': renderTAnswered(); break;
+    case 't-all-doubts': renderTAll(); break;
+    case 't-manage-videos': renderTVideos(); break;
+    case 't-upload-notes': renderTNotes(); break;
+    case 't-announce': renderTAnn(); break;
+    case 't-quiz': renderTQuiz(); break;
+    case 't-students': renderTStudents(); break;
+    case 't-schedule': renderTSchedule(); break;
+    case 't-chat': renderChat('teacher'); break;
+    case 't-profile': renderProfile('teacher'); break;
+  }
+  updateBadges();
+}
+
+// ═══════════════════════════════════════════════
+//  BADGES
+// ═══════════════════════════════════════════════
+function updateBadges(){
+  const doubts = DB.doubts();
+  const openMine = doubts.filter(d=>d.studentId===currentUser?.id && d.status==='open').length;
+  const pending = doubts.filter(d=>d.status==='open').length;
+  const anns = DB.announcements().length;
+  const el = (id)=>document.getElementById(id);
+  if(el('s-open-badge')){el('s-open-badge').textContent=openMine; el('s-open-badge').style.display=openMine?'':'none';}
+  if(el('s-ann-badge')){el('s-ann-badge').textContent=anns; el('s-ann-badge').style.display=anns?'':'none';}
+  if(el('t-pend-badge')){el('t-pend-badge').textContent=pending; el('t-pend-badge').style.display=pending?'':'none';}
+}
+
+// ═══════════════════════════════════════════════
+//  STUDENT DASHBOARD
+// ═══════════════════════════════════════════════
+function renderSDashboard(){
+  const doubts=DB.doubts(); const videos=DB.videos(); const notes=DB.notes();
+  const mine=doubts.filter(d=>d.studentId===currentUser.id);
+  const answered=mine.filter(d=>d.status==='answered').length;
+  const open=mine.filter(d=>d.status==='open').length;
+  document.getElementById('s-stats-row').innerHTML=`
+    ${statCard('blue','❓',mine.length,'My Doubts','Total posted')}
+    ${statCard('green','✅',answered,'Answered','Resolved questions')}
+    ${statCard('red','🔴',open,'Pending','Awaiting answer')}
+    ${statCard('gold','🎬',videos.length,'Videos','Available lectures')}
+    ${statCard('purple','🏅',currentUser.points||0,'Points','Your score')}
+  `;
+  // recent doubts
+  const recent = mine.slice(-3).reverse();
+  document.getElementById('s-recent-doubts').innerHTML = recent.length
+    ? recent.map(d=>miniDoubtCard(d,'s')).join('')
+    : emptyState('❓','No doubts yet','Post your first question!');
+  // leaderboard mini
+  const users=DB.users().filter(u=>u.role==='student').sort((a,b)=>(b.points||0)-(a.points||0)).slice(0,5);
+  document.getElementById('s-leaderboard-mini').innerHTML = users.map((u,i)=>`
+    <div class="lb-item">
+      <span class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</span>
+      <div class="lb-avatar ${u.id===currentUser.id?'u-av-s':'u-av-t'}" style="background:${avatarColor(u.id)}">${u.avatar}</div>
+      <span class="lb-name">${u.name}${u.id===currentUser.id?' (you)':''}</span>
+      <span class="lb-points">${u.points||0}pts</span>
+    </div>`).join('');
+  // activity feed
+  const activities = [
+    ...mine.map(d=>({type:'doubt',icon:'❓',title:`You asked: "${d.title.slice(0,40)}..."`,sub:d.subject,time:d.createdAt,color:'blue'})),
+    ...mine.filter(d=>d.answer).map(d=>({type:'answer',icon:'✅',title:`Answered: "${d.title.slice(0,38)}..."`,sub:'by '+d.answer.teacherName,time:d.answer.answeredAt,color:'green'})),
+  ].sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,5);
+  document.getElementById('s-activity-feed').innerHTML = activities.length
+    ? activities.map(a=>`<div class="af-item"><div class="af-dot ${a.color}">${a.icon}</div><div class="af-content"><div class="af-title">${a.title}</div><div class="af-sub">${a.sub}</div></div><span class="af-time">${timeAgo(a.time)}</span></div>`).join('')
+    : emptyState('📭','No recent activity','');
+}
+
+// ═══════════════════════════════════════════════
+//  STUDENT DOUBTS
+// ═══════════════════════════════════════════════
+function renderSDoubts(){
+  const doubts=DB.doubts().filter(d=>d.studentId===currentUser.id).reverse();
+  document.getElementById('s-my-doubts-list').innerHTML = doubts.length
+    ? doubts.map(d=>fullDoubtCard(d,'student')).join('')
+    : emptyState('❓','No doubts yet','Click "Post a Doubt" to ask your first question');
+}
+function renderSBrowse(){
+  const doubts=DB.doubts().reverse();
+  document.getElementById('s-browse-list').innerHTML = doubts.length
+    ? doubts.map(d=>fullDoubtCard(d,'student-browse')).join('')
+    : emptyState('🔍','No questions yet','');
+}
+
+function fullDoubtCard(d, ctx){
+  const subjectCls = subjectClass(d.subject);
+  const isOwn = d.studentId===currentUser.id;
+  return `<div class="doubt-card" onclick="openDoubtDetail('${d.id}','${ctx}')">
+    <div class="doubt-top">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="doubt-subject-tag ${subjectCls}">${d.subject}</span>
+        ${d.priority==='urgent'?'<span class="doubt-subject-tag" style="background:rgba(244,63,94,.12);color:var(--red)">🔥 Urgent</span>':''}
+      </div>
+      <span class="doubt-status-tag ${d.status==='answered'?'status-answered':d.status==='pending'?'status-pending':'status-open'}">${d.status==='answered'?'✅ Answered':d.status==='pending'?'⏳ Pending':'🔴 Open'}</span>
+    </div>
+    <div class="doubt-title">${d.title}</div>
+    <div class="doubt-body">${d.body}</div>
+    ${d.tags&&d.tags.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">${d.tags.map(t=>`<span class="chip">#${t}</span>`).join('')}</div>`:''}
+    <div class="doubt-meta">
+      <span class="meta-item"><span class="mi">👤</span>${d.studentName}</span>
+      <span class="meta-item"><span class="mi">📅</span>${formatDate(d.createdAt)}</span>
+      ${d.answer?`<span class="meta-item"><span class="mi">💬</span>Answered by ${d.answer.teacherName}</span>`:''}
+    </div>
+    ${d.answer?`<div style="margin-top:10px;padding:10px 12px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.12);border-radius:10px;font-size:.82rem;color:var(--text2)">${d.answer.text.slice(0,120)}...</div>`:''}
+  </div>`;
+}
+
+function miniDoubtCard(d, ctx){
+  return `<div class="doubt-card" style="padding:14px" onclick="openDoubtDetail('${d.id}','${ctx}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px">
+      <span class="doubt-subject-tag ${subjectClass(d.subject)}">${d.subject}</span>
+      <span class="doubt-status-tag ${d.status==='answered'?'status-answered':'status-open'}" style="font-size:.68rem">${d.status==='answered'?'✅':'🔴'}</span>
+    </div>
+    <div style="font-size:.88rem;font-weight:700;line-height:1.4">${d.title}</div>
+    <div style="font-size:.78rem;color:var(--text3);margin-top:4px">${timeAgo(d.createdAt)}</div>
+  </div>`;
+}
+
+function openDoubtDetail(id, ctx){
+  const d = DB.doubts().find(x=>x.id===id);
+  if(!d) return;
+  const isTeacher = currentUser.role==='teacher';
+  const subjectCls = subjectClass(d.subject);
+  const html = `
+    <div class="detail-card">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <span class="doubt-subject-tag ${subjectCls}">${d.subject}</span>
+        <span class="doubt-status-tag ${d.status==='answered'?'status-answered':d.status==='pending'?'status-pending':'status-open'}">${d.status==='answered'?'✅ Answered':d.status==='pending'?'⏳ Pending':'🔴 Open'}</span>
+        ${d.priority==='urgent'?'<span class="doubt-subject-tag" style="background:rgba(244,63,94,.12);color:var(--red)">🔥 Urgent</span>':''}
+      </div>
+      <div class="detail-title">${d.title}</div>
+      <div class="detail-meta">
+        <span class="meta-item"><span class="mi">👤</span>${d.studentName}</span>
+        <span class="meta-item"><span class="mi">📅</span>${formatDate(d.createdAt)}</span>
+        ${d.tags&&d.tags.length?`<span class="meta-item">${d.tags.map(t=>`<span class="chip">#${t}</span>`).join(' ')}</span>`:''}
+      </div>
+      <div class="detail-body">${d.body}</div>
+      ${d.attachment?`<div style="margin-bottom:16px"><span class="attach-thumb" onclick="previewAttach('${id}')">📎 View Attachment</span></div>`:''}
+      ${d.answer ? `
+        <div class="answer-block">
+          <div class="answer-header">
+            <div class="answer-teacher-info">
+              <div class="at-avatar">${d.answer.teacherName.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+              <div><div class="at-name">✅ ${d.answer.teacherName}</div><div class="at-badge">Answered ${timeAgo(d.answer.answeredAt)}</div></div>
+            </div>
+            ${isTeacher?`<button class="btn btn-sm btn-danger" onclick="deleteAnswer('${id}')">Delete</button>`:''}
+          </div>
+          <div class="answer-text" style="white-space:pre-line">${d.answer.text}</div>
+        </div>` : ''}
+      ${isTeacher && !d.answer ? `
+        <div class="answer-form">
+          <h3>📝 Write Your Answer</h3>
+          <textarea id="teacher-answer-input" placeholder="Write a detailed, helpful answer for the student. You can use line breaks for formatting..."></textarea>
+          <div class="answer-form-actions">
+            <button class="btn btn-success" onclick="submitAnswer('${id}')">✅ Submit Answer</button>
+            <button class="btn btn-gold" onclick="markPending('${id}')">⏳ Mark Pending</button>
+            <span style="font-size:.78rem;color:var(--text3);margin-left:auto">Student: ${d.studentName}</span>
+          </div>
+        </div>` : ''}
+      ${isTeacher ? `<div style="margin-top:14px;display:flex;gap:8px"><button class="btn btn-sm btn-danger" onclick="deleteDoubt('${id}')">🗑 Delete Question</button></div>`:''}
+    </div>`;
+
+  if(isTeacher){
+    document.getElementById('t-doubt-detail-content').innerHTML = html;
+    document.getElementById('page-t-doubt-detail').querySelector('.detail-back').setAttribute('onclick', `showPage('${ctx==='t-answered'?'t-answered':'t-doubts'}')`);
+    showPage('t-doubt-detail');
+  } else {
+    document.getElementById('s-doubt-detail-content').innerHTML = html;
+    document.getElementById('page-s-doubt-detail').querySelector('.detail-back').setAttribute('onclick', `showPage('s-doubts')`);
+    showPage('s-doubt-detail');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  SUBMIT DOUBT
+// ═══════════════════════════════════════════════
+let askFileData = null;
+function handleAskFile(input){
+  const f=input.files[0]; if(!f) return;
+  const prev=document.getElementById('ask-file-preview');
+  prev.style.display='block';
+  prev.innerHTML=`<div class="up-file"><span class="up-file-icon">📎</span><span class="up-file-name">${f.name}</span><span class="up-file-size">${(f.size/1024).toFixed(0)} KB</span></div>`;
+  const reader=new FileReader();
+  reader.onload=e=>{askFileData={name:f.name,data:e.target.result,type:f.type};};
+  reader.readAsDataURL(f);
+}
+function submitDoubt(){
+  const title=document.getElementById('ask-title').value.trim();
+  const body=document.getElementById('ask-body').value.trim();
+  const subject=document.getElementById('ask-subject').value;
+  const priority=document.getElementById('ask-priority').value;
+  const tags=document.getElementById('ask-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  if(!title||!body||!subject){toast('Please fill in the required fields.','error');return;}
+  const doubts=DB.doubts();
+  doubts.push({id:'d'+Date.now(),studentId:currentUser.id,studentName:currentUser.name,
+    title,body,subject,priority,status:'open',tags,createdAt:new Date().toISOString(),
+    answer:null,attachment:askFileData});
+  DB.set('doubts',doubts);
+  // award points
+  const users=DB.users();const idx=users.findIndex(u=>u.id===currentUser.id);
+  if(idx>-1){users[idx].points=(users[idx].points||0)+10;DB.set('users',users);currentUser.points=users[idx].points;}
+  addNotif('✅ Doubt submitted!',`"${title}" has been posted. Teachers will answer shortly.`);
+  toast('Doubt posted successfully! +10 points 🎉','success');
+  clearDoubtForm();
+  showPage('s-doubts');
+}
+function clearDoubtForm(){
+  ['ask-title','ask-body','ask-tags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ask-subject').value='';document.getElementById('ask-priority').value='normal';
+  document.getElementById('ask-file-preview').style.display='none';askFileData=null;
+}
+
+// ═══════════════════════════════════════════════
+//  TEACHER ANSWER
+// ═══════════════════════════════════════════════
+function submitAnswer(doubtId){
+  const text=document.getElementById('teacher-answer-input').value.trim();
+  if(!text){toast('Please write an answer first.','error');return;}
+  const doubts=DB.doubts();const idx=doubts.findIndex(d=>d.id===doubtId);
+  if(idx<0) return;
+  doubts[idx].answer={teacherId:currentUser.id,teacherName:currentUser.name,text,answeredAt:new Date().toISOString()};
+  doubts[idx].status='answered';
+  DB.set('doubts',doubts);
+  // award student points
+  const users=DB.users();const sidx=users.findIndex(u=>u.id===doubts[idx].studentId);
+  if(sidx>-1){users[sidx].points=(users[sidx].points||0)+20;DB.set('users',users);}
+  toast('Answer submitted successfully! ✅','success');
+  addNotif('💬 Your doubt was answered!',`"${doubts[idx].title}" has been answered by ${currentUser.name}.`);
+  showPage('t-doubts');
+}
+function markPending(doubtId){
+  const doubts=DB.doubts();const idx=doubts.findIndex(d=>d.id===doubtId);
+  if(idx<0) return;
+  doubts[idx].status='pending';DB.set('doubts',doubts);
+  toast('Marked as pending.','info');showPage('t-doubts');
+}
+function deleteAnswer(doubtId){
+  if(!confirm('Remove this answer?')) return;
+  const doubts=DB.doubts();const idx=doubts.findIndex(d=>d.id===doubtId);
+  doubts[idx].answer=null;doubts[idx].status='open';DB.set('doubts',doubts);
+  toast('Answer removed.','info');showPage('t-doubts');
+}
+function deleteDoubt(doubtId){
+  if(!confirm('Delete this question permanently?')) return;
+  DB.set('doubts',DB.doubts().filter(d=>d.id!==doubtId));
+  toast('Question deleted.','info');showPage('t-doubts');
+}
+
+// ═══════════════════════════════════════════════
+//  TEACHER DASHBOARD
+// ═══════════════════════════════════════════════
+function renderTDashboard(){
+  const doubts=DB.doubts();const videos=DB.videos();const users=DB.users().filter(u=>u.role==='student');
+  const pending=doubts.filter(d=>d.status==='open').length;
+  const answered=doubts.filter(d=>d.status==='answered').length;
+  document.getElementById('t-stats-row').innerHTML=`
+    ${statCard('red','🔴',pending,'Pending Doubts','Awaiting your answer')}
+    ${statCard('green','✅',answered,'Answered','Questions resolved')}
+    ${statCard('blue','👥',users.length,'Students','Registered learners')}
+    ${statCard('gold','🎬',videos.length,'Videos','Uploaded lectures')}
+    ${statCard('purple','📊',doubts.length,'Total Q&A','All questions')}
+  `;
+  // pending preview
+  const pend=doubts.filter(d=>d.status==='open').slice(0,4);
+  document.getElementById('t-pending-preview').innerHTML = pend.length
+    ? pend.map(d=>miniDoubtCard(d,'t')).join('')
+    : `<div class="empty-state" style="padding:30px"><div class="es-icon">🎉</div><h3>All caught up!</h3><p>No pending doubts.</p></div>`;
+  // subject stats
+  const subjects=['Mathematics','Physics','Chemistry','Computer Science','English','Biology','History'];
+  document.getElementById('t-subject-stats').innerHTML = subjects.map(s=>{
+    const cnt=doubts.filter(d=>d.subject===s).length;
+    const ans=doubts.filter(d=>d.subject===s&&d.status==='answered').length;
+    const pct=cnt?Math.round(ans/cnt*100):0;
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:3px">
+        <span>${s}</span><span style="color:var(--text2)">${ans}/${cnt}</span>
+      </div>
+      <div class="progress-bar" style="height:6px"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+  // activity
+  const acts = doubts.slice(-5).reverse().map(d=>({icon:d.status==='answered'?'✅':'❓',title:d.status==='answered'?`Answered: "${d.title.slice(0,35)}..."` : `New doubt: "${d.title.slice(0,35)}..."`,sub:d.studentName,time:d.createdAt,color:d.status==='answered'?'green':'red'}));
+  document.getElementById('t-activity-feed').innerHTML = acts.length
+    ? acts.map(a=>`<div class="af-item"><div class="af-dot ${a.color}">${a.icon}</div><div class="af-content"><div class="af-title">${a.title}</div><div class="af-sub">${a.sub}</div></div><span class="af-time">${timeAgo(a.time)}</span></div>`).join('')
+    : emptyState('📭','No activity','');
+}
+
+// ═══════════════════════════════════════════════
+//  TEACHER DOUBT LISTS
+// ═══════════════════════════════════════════════
+function renderTPending(){
+  const doubts=DB.doubts().filter(d=>d.status==='open'||d.status==='pending').reverse();
+  document.getElementById('t-pend-list').innerHTML = doubts.length
+    ? doubts.map(d=>fullDoubtCard(d,'teacher')).join('')
+    : `<div class="empty-state"><div class="es-icon">🎉</div><h3>No pending doubts!</h3><p>All questions have been answered.</p></div>`;
+}
+function renderTAnswered(){
+  const doubts=DB.doubts().filter(d=>d.status==='answered').reverse();
+  document.getElementById('t-ans-list').innerHTML = doubts.length
+    ? doubts.map(d=>fullDoubtCard(d,'t-answered')).join('')
+    : emptyState('✅','No answered doubts yet','');
+}
+function renderTAll(){
+  const doubts=DB.doubts().reverse();
+  document.getElementById('t-all-list').innerHTML = doubts.length
+    ? doubts.map(d=>fullDoubtCard(d,'t-all')).join('')
+    : emptyState('📋','No questions yet','');
+}
+
+// ═══════════════════════════════════════════════
+//  VIDEOS
+// ═══════════════════════════════════════════════
+let vidFileData=null, vidThumbData=null;
+function handleVideoUpload(input){
+  const f=input.files[0]; if(!f) return;
+  const prev=document.getElementById('vid-file-preview');
+  prev.style.display='block';
+  prev.innerHTML=`<div class="up-file"><span class="up-file-icon">🎬</span><span class="up-file-name">${f.name}</span><span class="up-file-size">${(f.size/1024/1024).toFixed(1)} MB</span></div><div class="progress-bar"><div class="progress-fill" id="vid-prog"></div></div>`;
+  let prog=0; const iv=setInterval(()=>{prog=Math.min(100,prog+5);const el=document.getElementById('vid-prog');if(el)el.style.width=prog+'%';if(prog===100)clearInterval(iv);},80);
+  const reader=new FileReader();
+  reader.onload=e=>{vidFileData={name:f.name,data:e.target.result,type:f.type,size:f.size};};
+  reader.readAsDataURL(f);
+}
+function handleThumbUpload(input){
+  const f=input.files[0]; if(!f) return;
+  const prev=document.getElementById('vid-thumb-preview');
+  prev.style.display='block';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    vidThumbData=e.target.result;
+    prev.innerHTML=`<img src="${e.target.result}" style="width:100%;height:80px;object-fit:cover;border-radius:8px;margin-top:6px">`;
+  };
+  reader.readAsDataURL(f);
+}
+function uploadVideo(){
+  const title=document.getElementById('vid-title').value.trim();
+  const subject=document.getElementById('vid-subject').value;
+  const topic=document.getElementById('vid-topic').value.trim();
+  const desc=document.getElementById('vid-desc').value.trim();
+  const visible=document.getElementById('vid-visible').checked;
+  if(!title||!subject){toast('Please fill in required fields.','error');return;}
+  if(!vidFileData){toast('Please select a video file.','error');return;}
+  const videos=DB.videos();
+  videos.push({id:'v'+Date.now(),teacherId:currentUser.id,teacherName:currentUser.name,
+    title,subject,topic,desc,duration:'--:--',views:0,visible,
+    createdAt:new Date().toISOString().split('T')[0],
+    fileData:vidFileData,thumbData:vidThumbData});
+  DB.set('videos',videos);
+  addNotif('🎬 New video uploaded!',`"${title}" is now available in the video library.`);
+  toast('Video uploaded successfully! 🎬','success');
+  clearVideoForm();
+  showPage('t-manage-videos');
+}
+function clearVideoForm(){
+  ['vid-title','vid-topic','vid-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('vid-subject').value='';
+  ['vid-file-preview','vid-thumb-preview'].forEach(id=>{document.getElementById(id).style.display='none';document.getElementById(id).innerHTML='';});
+  vidFileData=null;vidThumbData=null;
+}
+function renderSVideos(){
+  renderVideoGrid('s-video-grid', DB.videos().filter(v=>v.visible));
+}
+function renderTVideos(){
+  renderVideoGrid('t-video-grid', DB.videos().filter(v=>v.teacherId===currentUser.id));
+}
+function renderVideoGrid(containerId, videos){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  if(!videos.length){el.innerHTML=emptyState('🎬','No videos yet','');return;}
+  el.innerHTML=videos.map(v=>videoCard(v)).join('');
+}
+function videoCard(v){
+  const subCls=subjectClass(v.subject);
+  return `<div class="video-card" onclick="playVideo('${v.id}')">
+    <div class="video-thumb">
+      ${v.thumbData?`<img src="${v.thumbData}" style="width:100%;height:100%;object-fit:cover">`:
+        `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--s3);font-size:2.5rem">🎬</div>`}
+      <div class="video-play-overlay"><div class="play-btn-big">▶</div></div>
+      ${v.duration?`<span class="video-duration">${v.duration}</span>`:''}
+    </div>
+    <div class="video-info">
+      <div class="video-title">${v.title}</div>
+      <div class="video-sub">
+        <span class="video-subject-tag doubt-subject-tag ${subCls}">${v.subject}</span>
+        <span class="video-meta">👁 ${v.views} views</span>
+        <span class="video-meta">📅 ${v.createdAt}</span>
+      </div>
+      ${v.topic?`<div style="font-size:.75rem;color:var(--text3);margin-top:4px">📌 ${v.topic}</div>`:''}
+    </div>
+  </div>`;
+}
+function playVideo(id){
+  const v=DB.videos().find(x=>x.id===id);if(!v) return;
+  // increment views
+  const videos=DB.videos();const idx=videos.findIndex(x=>x.id===id);
+  if(idx>-1){videos[idx].views++;DB.set('videos',videos);}
+  document.getElementById('vmodal-title').textContent=v.title;
+  const player=document.getElementById('vmodal-player');
+  if(v.fileData){player.src=v.fileData;}
+  else{player.src='';player.removeAttribute('src');}
+  document.getElementById('vmodal-info').innerHTML=`
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <span class="doubt-subject-tag ${subjectClass(v.subject)}">${v.subject}</span>
+      ${v.topic?`<span class="chip">📌 ${v.topic}</span>`:''}
+    </div>
+    <div style="font-size:.88rem;color:var(--text2);line-height:1.6">${v.desc||'No description.'}</div>
+    <div style="display:flex;gap:14px;margin-top:10px;font-size:.78rem;color:var(--text3)">
+      <span>👤 ${v.teacherName}</span><span>📅 ${v.createdAt}</span><span>👁 ${v.views} views</span>
+    </div>
+    ${!v.fileData?`<div style="margin-top:14px;padding:14px;background:var(--s2);border-radius:10px;text-align:center;color:var(--text2);font-size:.85rem">⚠️ This is a demo video — no actual file is stored.<br>When you upload a real video, it will play here.</div>`:''}
+  `;
+  document.getElementById('video-modal').classList.add('open');
+}
+function closeVideoModal(){
+  document.getElementById('vmodal-player').pause();
+  document.getElementById('vmodal-player').src='';
+  document.getElementById('video-modal').classList.remove('open');
+}
+function filterVideos(q){renderVideoGrid('s-video-grid',DB.videos().filter(v=>v.visible&&v.title.toLowerCase().includes(q.toLowerCase())));}
+function filterVideoSubject(s){renderVideoGrid('s-video-grid',DB.videos().filter(v=>v.visible&&(!s||v.subject===s)));}
+
+// ═══════════════════════════════════════════════
+//  NOTES
+// ═══════════════════════════════════════════════
+let noteFileData=null;
+function handleNoteUpload(input){
+  const f=input.files[0];if(!f)return;
+  const prev=document.getElementById('note-file-preview');
+  prev.style.display='block';
+  prev.innerHTML=`<div class="up-file"><span class="up-file-icon">📎</span><span class="up-file-name">${f.name}</span><span class="up-file-size">${(f.size/1024).toFixed(0)} KB</span></div>`;
+  const reader=new FileReader();
+  reader.onload=e=>{noteFileData={name:f.name,data:e.target.result,type:f.type,size:(f.size/1024).toFixed(0)+' KB'};};
+  reader.readAsDataURL(f);
+}
+function uploadNote(){
+  const title=document.getElementById('note-title').value.trim();
+  const subject=document.getElementById('note-subject').value;
+  const type=document.getElementById('note-type').value;
+  const desc=document.getElementById('note-desc').value.trim();
+  if(!title||!subject){toast('Please fill in required fields.','error');return;}
+  const notes=DB.notes();
+  notes.push({id:'n'+Date.now(),teacherId:currentUser.id,teacherName:currentUser.name,
+    title,subject,type,desc,size:noteFileData?noteFileData.size:'0 KB',
+    createdAt:new Date().toISOString().split('T')[0],fileData:noteFileData});
+  DB.set('notes',notes);
+  toast('Notes uploaded successfully! 📄','success');
+  ['note-title','note-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('note-subject').value='';
+  document.getElementById('note-file-preview').style.display='none';
+  noteFileData=null;
+  renderTNotes();
+}
+function renderTNotes(){renderNotesGrid('t-notes-grid',DB.notes().filter(n=>n.teacherId===currentUser.id));}
+function renderSNotes(type){renderNotesGrid('s-notes-grid',DB.notes().filter(n=>!type||type==='all'||n.type===type));}
+function renderNotesGrid(cid,notes){
+  const el=document.getElementById(cid);if(!el)return;
+  if(!notes.length){el.innerHTML=emptyState('📄','No materials yet','');return;}
+  const icons={pdf:'📕',doc:'📘',ppt:'📊',other:'📁'};
+  el.innerHTML=notes.map(n=>`
+    <div class="resource-card">
+      <div class="rc-icon">${icons[n.type]||'📎'}</div>
+      <div class="rc-name">${n.title}</div>
+      <div class="rc-meta">${n.subject} · ${n.size} · ${n.createdAt}</div>
+      ${n.desc?`<div style="font-size:.75rem;color:var(--text3);margin-top:4px;line-height:1.4">${n.desc}</div>`:''}
+      <div class="rc-actions">
+        ${n.fileData?`<button class="btn btn-sm btn-primary" onclick="downloadNote('${n.id}')">⬇ Download</button>`:'<span style="font-size:.75rem;color:var(--text3)">No file</span>'}
+      </div>
+    </div>`).join('');
+}
+function downloadNote(id){
+  const n=DB.notes().find(x=>x.id===id);
+  if(!n||!n.fileData){toast('No file attached.','error');return;}
+  const a=document.createElement('a');a.href=n.fileData.data;a.download=n.fileData.name;a.click();
+  toast('Downloading '+n.fileData.name,'success');
+}
+function filterNoteType(type,btn){
+  document.querySelectorAll('.section-tabs .stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSNotes(type);
+}
+
+// ═══════════════════════════════════════════════
+//  ANNOUNCEMENTS
+// ═══════════════════════════════════════════════
+function postAnnouncement(){
+  const title=document.getElementById('ann-title').value.trim();
+  const body=document.getElementById('ann-body').value.trim();
+  const priority=document.getElementById('ann-priority').value;
+  if(!title||!body){toast('Please fill in all fields.','error');return;}
+  const anns=DB.announcements();
+  anns.unshift({id:'a'+Date.now(),teacherId:currentUser.id,teacherName:currentUser.name,title,body,priority,createdAt:new Date().toISOString()});
+  DB.set('announcements',anns);
+  addNotif('📢 New announcement!',title);
+  toast('Announcement posted!','success');
+  document.getElementById('ann-title').value='';document.getElementById('ann-body').value='';
+  renderTAnn();
+}
+function renderSAnn(){
+  const anns=DB.announcements();
+  document.getElementById('s-ann-list').innerHTML = anns.length
+    ? anns.map(a=>annCard(a,false)).join('')
+    : emptyState('📢','No announcements','Check back later');
+}
+function renderTAnn(){
+  const anns=DB.announcements().filter(a=>a.teacherId===currentUser.id);
+  document.getElementById('t-ann-list').innerHTML = anns.length
+    ? anns.map(a=>annCard(a,true)).join('')
+    : emptyState('📢','No announcements yet','Post your first announcement');
+}
+function annCard(a,isTeacher){
+  const cls={urgent:'ann-urgent',normal:'ann-normal',info:'ann-info'}[a.priority]||'ann-normal';
+  const label={urgent:'🔴 Urgent',normal:'📘 Normal',info:'ℹ️ Info'}[a.priority]||'Normal';
+  return `<div class="ann-card">
+    <div class="ann-header">
+      <div class="ann-title">${a.title}</div>
+      <span class="ann-priority ${cls}">${label}</span>
+    </div>
+    <div class="ann-body">${a.body}</div>
+    <div class="ann-footer">
+      <span class="meta-item"><span class="mi">👤</span>${a.teacherName}</span>
+      <span class="meta-item"><span class="mi">📅</span>${formatDate(a.createdAt)}</span>
+      ${isTeacher?`<button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="deleteAnn('${a.id}')">🗑</button>`:''}
+    </div>
+  </div>`;
+}
+function deleteAnn(id){
+  if(!confirm('Delete this announcement?')) return;
+  DB.set('announcements',DB.announcements().filter(a=>a.id!==id));
+  toast('Announcement deleted.','info');renderTAnn();
+}
+
+// ═══════════════════════════════════════════════
+//  SCHEDULE
+// ═══════════════════════════════════════════════
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+function renderSSchedule(){renderScheduleGrid('s-schedule-wrap');}
+function renderTSchedule(){renderScheduleGrid('t-schedule-wrap');}
+function renderScheduleGrid(cid){
+  const slots=DB.schedule();
+  let html=`<div class="schedule-grid" style="margin-bottom:20px">
+    ${DAYS.map(d=>`<div class="schedule-day-header">${d.slice(0,3)}</div>`).join('')}
+    ${DAYS.map(day=>{
+      const daySlots=slots.filter(s=>s.day===day).sort((a,b)=>a.start.localeCompare(b.start));
+      return daySlots.length
+        ? daySlots.map(s=>`<div class="schedule-slot has-class"><div class="ss-time">${s.start}–${s.end}</div><div class="ss-subject">${s.subject}</div><div class="ss-room">📍 ${s.room}</div></div>`).join('')
+        : `<div class="schedule-slot"></div>`;
+    }).join('')}
+  </div>`;
+  document.getElementById(cid).innerHTML=html;
+}
+function openScheduleModal(){document.getElementById('schedule-modal').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function addScheduleSlot(){
+  const sch=DB.schedule();
+  sch.push({id:'s'+Date.now(),
+    day:document.getElementById('sch-day').value,
+    start:document.getElementById('sch-start').value,
+    end:document.getElementById('sch-end').value,
+    subject:document.getElementById('sch-subject').value,
+    room:document.getElementById('sch-room').value||'TBD'});
+  DB.set('schedule',sch);
+  closeModal('schedule-modal');
+  toast('Class added to schedule!','success');
+  renderTSchedule();
+}
+
+// ═══════════════════════════════════════════════
+//  QUIZ
+// ═══════════════════════════════════════════════
+function renderTQuiz(){
+  if(quizQuestionCount===0) addQuizQuestion();
+  const quizzes=DB.quizzes().filter(q=>q.teacherId===currentUser.id);
+  document.getElementById('t-quiz-list').innerHTML=quizzes.length
+    ? quizzes.map(q=>`
+      <div class="quiz-card" style="cursor:default">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <div style="font-weight:700">${q.title}</div>
+            <div style="font-size:.78rem;color:var(--text2)">${q.subject} · ${q.questions.length} questions · ${formatDate(q.createdAt)}</div>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="deleteQuiz('${q.id}')">🗑</button>
+        </div>
+      </div>`).join('')
+    : emptyState('🧠','No quizzes yet','Create your first quiz above');
+}
+function addQuizQuestion(){
+  quizQuestionCount++;
+  const wrap=document.getElementById('quiz-questions-wrap');
+  const qn=quizQuestionCount;
+  const div=document.createElement('div');
+  div.className='card';div.style.marginBottom='12px';
+  div.innerHTML=`<div class="card-header"><span class="card-title">Q${qn}.</span><button class="btn btn-sm btn-danger" onclick="this.closest('.card').remove()">✕</button></div>
+  <div class="card-body">
+    <div class="fld"><label>Question</label><input type="text" id="qq-${qn}" placeholder="Enter your question here..."></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${[0,1,2,3].map(i=>`<div class="fld"><label>Option ${i+1}</label><input type="text" id="qo-${qn}-${i}" placeholder="Option ${i+1}"></div>`).join('')}
+    </div>
+    <div class="fld"><label>Correct Answer</label>
+      <select id="qc-${qn}"><option value="0">Option 1</option><option value="1">Option 2</option><option value="2">Option 3</option><option value="3">Option 4</option></select>
+    </div>
+  </div>`;
+  wrap.appendChild(div);
+}
+function publishQuiz(){
+  const title=document.getElementById('quiz-title').value.trim();
+  const subject=document.getElementById('quiz-subject').value;
+  if(!title){toast('Please enter a quiz title.','error');return;}
+  const questions=[];
+  document.querySelectorAll('#quiz-questions-wrap .card').forEach((card,i)=>{
+    const n=i+1;
+    const q=document.getElementById('qq-'+n)?.value.trim();
+    const opts=[0,1,2,3].map(j=>document.getElementById(`qo-${n}-${j}`)?.value.trim()||`Option ${j+1}`);
+    const correct=parseInt(document.getElementById('qc-'+n)?.value||0);
+    if(q) questions.push({q,opts,correct});
+  });
+  if(!questions.length){toast('Add at least one question.','error');return;}
+  const quizzes=DB.quizzes();
+  quizzes.push({id:'q'+Date.now(),teacherId:currentUser.id,teacherName:currentUser.name,title,subject,questions,createdAt:new Date().toISOString()});
+  DB.set('quizzes',quizzes);
+  toast('Quiz published! 🧠','success');
+  document.getElementById('quiz-title').value='';
+  document.getElementById('quiz-questions-wrap').innerHTML='';
+  quizQuestionCount=0;
+  renderTQuiz();
+}
+function deleteQuiz(id){
+  if(!confirm('Delete this quiz?')) return;
+  DB.set('quizzes',DB.quizzes().filter(q=>q.id!==id));
+  toast('Quiz deleted.','info');renderTQuiz();
+}
+function renderSQuiz(){
+  const quizzes=DB.quizzes();const attempts=DB.quizAttempts();
+  document.getElementById('s-quiz-list').innerHTML=quizzes.length
+    ? quizzes.map(q=>{
+        const attempted=attempts[currentUser.id+'-'+q.id];
+        return `<div class="quiz-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+            <div><div style="font-weight:700;font-size:1rem">${q.title}</div>
+            <div style="font-size:.78rem;color:var(--text2)">${q.subject} · ${q.questions.length} questions</div></div>
+            ${attempted?`<span class="badge-green" style="padding:4px 10px;border-radius:8px;font-size:.78rem;font-weight:700">Score: ${attempted.score}/${q.questions.length}</span>`
+              :`<button class="btn btn-primary btn-sm" onclick="startQuiz('${q.id}')">Take Quiz →</button>`}
+          </div>
+          ${attempted?`<div class="quiz-questions" id="quiz-result-${q.id}"></div>`:
+          `<div id="quiz-play-${q.id}" style="display:none"></div>`}
+        </div>`;
+      }).join('')
+    : emptyState('🧠','No quizzes available','Your teacher hasn\'t posted any quizzes yet');
+}
+function startQuiz(qid){
+  const q=DB.quizzes().find(x=>x.id===qid);if(!q)return;
+  const cont=document.getElementById('quiz-play-'+qid);
+  cont.style.display='block';
+  cont.innerHTML=`<div class="quiz-options" id="quiz-opts-${qid}">
+    ${q.questions.map((question,i)=>`
+      <div style="margin-bottom:18px">
+        <div class="quiz-q">${i+1}. ${question.q}</div>
+        <div class="quiz-options">
+          ${question.opts.map((o,j)=>`<div class="quiz-opt" onclick="selectOpt(this,'${qid}',${i},${j})" data-qi="${i}" data-oi="${j}"><span class="opt-circle">${String.fromCharCode(65+j)}</span>${o}</div>`).join('')}
+        </div>
+      </div>`).join('')}
+  </div>
+  <button class="btn btn-primary" onclick="submitQuiz('${qid}')">Submit Quiz</button>`;
+}
+const quizAnswers={};
+function selectOpt(el,qid,qi,oi){
+  quizAnswers[qid]=quizAnswers[qid]||{};
+  quizAnswers[qid][qi]=oi;
+  el.closest('.quiz-options').querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function submitQuiz(qid){
+  const q=DB.quizzes().find(x=>x.id===qid);if(!q)return;
+  const ans=quizAnswers[qid]||{};
+  let score=0;
+  q.questions.forEach((question,i)=>{if(ans[i]===question.correct)score++;});
+  const attempts=DB.quizAttempts();
+  attempts[currentUser.id+'-'+qid]={score,total:q.questions.length,date:new Date().toISOString()};
+  DB.set('quizAttempts',attempts);
+  // award points
+  const users=DB.users();const idx=users.findIndex(u=>u.id===currentUser.id);
+  if(idx>-1){users[idx].points=(users[idx].points||0)+(score*15);DB.set('users',users);currentUser.points=users[idx].points;}
+  toast(`Quiz submitted! Score: ${score}/${q.questions.length} (+${score*15} pts)`,score>q.questions.length/2?'success':'info');
+  renderSQuiz();
+}
+
+// ═══════════════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════════════
+function renderSLeaderboard(){
+  const users=DB.users().filter(u=>u.role==='student').sort((a,b)=>(b.points||0)-(a.points||0));
+  document.getElementById('s-lb-full').innerHTML=`
+    <div class="card"><div class="card-header"><span class="card-title">🏆 Top Students by Points</span></div>
+    <div class="card-body">${users.map((u,i)=>`
+      <div class="lb-item" style="${u.id===currentUser.id?'border-color:var(--blue);background:rgba(79,142,247,.06)':''}">
+        <span class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</span>
+        <div class="lb-avatar" style="background:${avatarColor(u.id)};color:#fff;font-size:.75rem;font-weight:700;">${u.avatar}</div>
+        <div><div class="lb-name">${u.name}${u.id===currentUser.id?' 👈':''}</div><div style="font-size:.72rem;color:var(--text3)">${u.dept} · ${u.year||''}</div></div>
+        <span class="lb-points">${u.points||0} pts</span>
+      </div>`).join('')}
+    </div></div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  STUDENTS LIST (teacher)
+// ═══════════════════════════════════════════════
+function renderTStudents(q=''){
+  const students=DB.users().filter(u=>u.role==='student'&&(!q||u.name.toLowerCase().includes(q.toLowerCase())||u.email.toLowerCase().includes(q.toLowerCase())));
+  const doubts=DB.doubts();
+  document.getElementById('t-students-list').innerHTML=students.length
+    ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+      ${students.map(s=>{
+        const sd=doubts.filter(d=>d.studentId===s.id);
+        const ans=sd.filter(d=>d.status==='answered').length;
+        return `<div class="card" style="padding:18px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:44px;height:44px;border-radius:12px;background:${avatarColor(s.id)};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#fff">${s.avatar}</div>
+            <div><div style="font-weight:700">${s.name}</div><div style="font-size:.75rem;color:var(--text2)">${s.email}</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.78rem;color:var(--text2)">
+            <span>🏛 ${s.dept}</span><span>📅 ${s.year||'—'}</span>
+            <span>🆔 ${s.roll||'—'}</span><span>🏅 ${s.points||0} pts</span>
+            <span>❓ ${sd.length} doubts</span><span>✅ ${ans} answered</span>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:6px">
+            <button class="btn btn-sm btn-outline" onclick="openChatWith('${s.id}','${s.name}')">💬 Message</button>
+          </div>
+        </div>`;
+      }).join('')}</div>`
+    : emptyState('👥','No students found','');
+}
+function filterStudents(q){renderTStudents(q);}
+function openChatWith(peerId,peerName){
+  currentChatPeer=peerId;
+  if(currentUser.role==='teacher'){showPage('t-chat');}else{showPage('s-chat');}
+}
+
+// ═══════════════════════════════════════════════
+//  CHAT
+// ═══════════════════════════════════════════════
+function renderChat(role){
+  const users=DB.users().filter(u=>u.role!==(role==='student'?'student':'teacher'));
+  const listId=role==='student'?'s-chat-list':'t-chat-list';
+  const headId=role==='student'?'s-chat-header':'t-chat-header';
+  const msgsId=role==='student'?'s-chat-msgs':'t-chat-msgs';
+  const msgs=DB.messages();
+  document.getElementById(listId).innerHTML=users.map(u=>{
+    const key=[currentUser.id,u.id].sort().join('-');
+    const thread=msgs[key]||[];
+    const last=thread[thread.length-1];
+    return `<div class="chat-item${currentChatPeer===u.id?' active':''}" onclick="selectChatPeer('${u.id}','${u.name}','${role}')">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="lb-avatar" style="background:${avatarColor(u.id)};color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700">${u.avatar}</div>
+        <div style="flex:1;min-width:0">
+          <div class="ci-name">${u.name}</div>
+          <div class="ci-last">${last?last.text:'No messages yet'}</div>
+        </div>
+        <span class="ci-time">${last?timeAgo(last.time):''}</span>
+      </div>
+    </div>`;
+  }).join('');
+  if(currentChatPeer) loadChatThread(currentChatPeer, role);
+}
+function selectChatPeer(peerId,peerName,role){
+  currentChatPeer=peerId;
+  const headId=role==='student'?'s-chat-header':'t-chat-header';
+  document.getElementById(headId).innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${avatarColor(peerId)};display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff">${peerName.split(' ').map(w=>w[0]).join('').slice(0,2)}</div><span style="font-weight:700">${peerName}</span><span style="font-size:.75rem;color:var(--green);margin-left:4px">● Online</span>`;
+  loadChatThread(peerId,role);
+  renderChat(role);
+}
+function loadChatThread(peerId,role){
+  const key=[currentUser.id,peerId].sort().join('-');
+  const msgs=(DB.messages()[key])||[];
+  const msgsId=role==='student'?'s-chat-msgs':'t-chat-msgs';
+  const el=document.getElementById(msgsId);
+  el.innerHTML=msgs.length
+    ? msgs.map(m=>`<div class="msg ${m.from===currentUser.id?'mine':'theirs'}">${m.text}<div class="msg-time">${timeAgo(m.time)}</div></div>`).join('')
+    : `<div style="text-align:center;color:var(--text3);padding:40px;font-size:.85rem">Start a conversation 👋</div>`;
+  el.scrollTop=el.scrollHeight;
+}
+function sendMsg(role){
+  if(!currentChatPeer){toast('Select a conversation first.','info');return;}
+  const inputId=role==='student'?'s-chat-input':'t-chat-input';
+  const text=document.getElementById(inputId).value.trim();
+  if(!text) return;
+  const key=[currentUser.id,currentChatPeer].sort().join('-');
+  const allMsgs=DB.messages();
+  if(!allMsgs[key]) allMsgs[key]=[];
+  allMsgs[key].push({from:currentUser.id,text,time:new Date().toISOString()});
+  DB.set('messages',allMsgs);
+  document.getElementById(inputId).value='';
+  loadChatThread(currentChatPeer,role);
+}
+
+// ═══════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════
+function renderProfile(role){
+  const u=currentUser;
+  const wrapId=role==='student'?'s-profile-wrap':'t-profile-wrap';
+  const doubts=DB.doubts();
+  const myDoubts=doubts.filter(d=>d.studentId===u.id);
+  const answeredByMe=doubts.filter(d=>d.answer&&d.answer.teacherId===u.id);
+  document.getElementById(wrapId).innerHTML=`
+    <div class="profile-hero">
+      <div class="profile-avatar-big ${role==='student'?'u-av-s':'u-av-t'}" style="background:${avatarColor(u.id)};color:#fff">${u.avatar}</div>
+      <div class="profile-details">
+        <h2>${u.name}</h2>
+        <div class="p-role ${role==='student'?'s':'t'}">${role==='student'?'👨‍🎓 Student':'👩‍🏫 Teacher'} · ${u.dept}</div>
+        <div class="profile-badges">
+          ${role==='student'?`<span class="p-badge">📅 ${u.year}</span><span class="p-badge">🆔 ${u.roll||'N/A'}</span>`:
+          `<span class="p-badge">📚 ${u.subject}</span>`}
+          <span class="p-badge">🏅 ${u.points||0} points</span>
+          <span class="p-badge">📧 ${u.email}</span>
+          <span class="p-badge">🗓 Joined ${u.joined}</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:4px">
+      <div class="card"><div class="card-header"><span class="card-title">📝 Edit Profile</span></div>
+        <div class="card-body">
+          <div class="fld"><label>Full Name</label><input type="text" id="prof-name" value="${u.name}"></div>
+          <div class="fld"><label>Email</label><input type="email" id="prof-email" value="${u.email}"></div>
+          <div class="fld"><label>Department</label><input type="text" id="prof-dept" value="${u.dept||''}"></div>
+          ${role==='student'?`
+            <div class="fld"><label>Roll Number</label><input type="text" id="prof-roll" value="${u.roll||''}"></div>
+            <div class="fld"><label>Year</label><select id="prof-year"><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></div>`:''}
+          ${role==='teacher'?`<div class="fld"><label>Subject</label><input type="text" id="prof-subject" value="${u.subject||''}"></div>`:''}
+          <div class="fld"><label>New Password (leave blank to keep)</label><input type="password" id="prof-pass" placeholder="New password..."></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px"><div class="card-header"><span class="card-title">📊 Stats</span></div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              ${role==='student'?`
+                ${miniStat('❓',myDoubts.length,'Doubts Posted')}
+                ${miniStat('✅',myDoubts.filter(d=>d.status==='answered').length,'Answered')}
+                ${miniStat('🏅',u.points||0,'Points')}
+                ${miniStat('🎬',DB.videos().length,'Videos')}
+              `:`
+                ${miniStat('✅',answeredByMe.length,'Answered')}
+                ${miniStat('🎬',DB.videos().filter(v=>v.teacherId===u.id).length,'Videos')}
+                ${miniStat('📢',DB.announcements().filter(a=>a.teacherId===u.id).length,'Announcements')}
+                ${miniStat('🧠',DB.quizzes().filter(q=>q.teacherId===u.id).length,'Quizzes')}
+              `}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  if(role==='student'&&document.getElementById('prof-year')){
+    document.getElementById('prof-year').value=u.year||'1st Year';
+  }
+}
+function miniStat(icon,val,label){
+  return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">
+    <div style="font-size:1.3rem">${icon}</div><div style="font-weight:800;font-size:1.2rem">${val}</div>
+    <div style="font-size:.72rem;color:var(--text2)">${label}</div>
+  </div>`;
+}
+function saveProfile(role){
+  const users=DB.users();const idx=users.findIndex(u=>u.id===currentUser.id);
+  if(idx<0) return;
+  users[idx].name=document.getElementById('prof-name').value.trim()||users[idx].name;
+  users[idx].email=document.getElementById('prof-email').value.trim()||users[idx].email;
+  users[idx].dept=document.getElementById('prof-dept').value.trim()||users[idx].dept;
+  if(role==='student'){
+    const roll=document.getElementById('prof-roll');const yr=document.getElementById('prof-year');
+    if(roll)users[idx].roll=roll.value;
+    if(yr)users[idx].year=yr.value;
+  }
+  if(role==='teacher'){const sub=document.getElementById('prof-subject');if(sub)users[idx].subject=sub.value;}
+  const newPass=document.getElementById('prof-pass').value;
+  if(newPass&&newPass.length>=4)users[idx].pass=newPass;
+  DB.set('users',users);
+  Object.assign(currentUser,users[idx]);
+  document.getElementById('topbar-name').textContent=currentUser.name;
+  document.getElementById('topbar-avatar').textContent=currentUser.avatar;
+  toast('Profile updated successfully!','success');
+}
+
+// ═══════════════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════════════
+function addNotif(title,body){
+  const notifs=DB.notifications();
+  notifs.unshift({id:'nn'+Date.now(),title,body,time:new Date().toISOString(),read:false});
+  DB.set('notifications',notifs.slice(0,30));
+  document.getElementById('notif-dot').style.display='block';
+}
+function loadNotifications(){
+  const notifs=DB.notifications();
+  const unread=notifs.filter(n=>!n.read).length;
+  document.getElementById('notif-dot').style.display=unread?'block':'none';
+  document.getElementById('notif-list').innerHTML=notifs.length
+    ? notifs.map(n=>`<div class="notif-item${n.read?'':' unread'}" onclick="markNotifRead('${n.id}')">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          ${!n.read?'<div class="ni-dot" style="margin-top:4px;flex-shrink:0"></div>':'<div style="width:7px"></div>'}
+          <div><div class="ni-title">${n.title}</div><div class="ni-body">${n.body}</div><div class="ni-time">${timeAgo(n.time)}</div></div>
+        </div></div>`).join('')
+    : `<div style="padding:30px;text-align:center;color:var(--text3);font-size:.85rem">No notifications</div>`;
+}
+function markNotifRead(id){
+  const notifs=DB.notifications();const idx=notifs.findIndex(n=>n.id===id);
+  if(idx>-1){notifs[idx].read=true;DB.set('notifications',notifs);loadNotifications();}
+}
+function clearNotifs(){DB.set('notifications',[]);loadNotifications();document.getElementById('notif-dot').style.display='none';}
+function toggleNotifPanel(){
+  const p=document.getElementById('notif-panel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')) loadNotifications();
+}
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('notif-panel');
+  if(!panel.contains(e.target)&&e.target.id!=='notif-toggle'&&!e.target.closest('#notif-toggle'))
+    panel.classList.remove('open');
+});
+
+// ═══════════════════════════════════════════════
+//  FILTER HELPERS
+// ═══════════════════════════════════════════════
+function filterDoubts(type, val){
+  const doubts=DB.doubts();
+  let list;
+  if(type==='my'||type==='my-status'||type==='my-subject'){
+    list=doubts.filter(d=>d.studentId===currentUser.id);
+    if(type==='my') list=list.filter(d=>d.title.toLowerCase().includes(val.toLowerCase())||d.body.toLowerCase().includes(val.toLowerCase()));
+    if(type==='my-status'&&val) list=list.filter(d=>d.status===val);
+    if(type==='my-subject'&&val) list=list.filter(d=>d.subject===val);
+    document.getElementById('s-my-doubts-list').innerHTML=list.reverse().map(d=>fullDoubtCard(d,'student')).join('')||emptyState('🔍','No matching doubts','');
+  }else if(type==='all'||type==='all-subject'||type==='all-status2'){
+    list=[...doubts];
+    if(type==='all') list=list.filter(d=>d.title.toLowerCase().includes(val.toLowerCase())||d.body.toLowerCase().includes(val.toLowerCase()));
+    if(type==='all-subject'&&val) list=list.filter(d=>d.subject===val);
+    if(type==='all-status2'&&val) list=list.filter(d=>d.status===val);
+    document.getElementById('s-browse-list').innerHTML=list.reverse().map(d=>fullDoubtCard(d,'student-browse')).join('')||emptyState('🔍','No results','');
+  }else if(type==='teacher-pend'||type==='t-subject'){
+    list=doubts.filter(d=>d.status==='open'||d.status==='pending');
+    if(type==='teacher-pend') list=list.filter(d=>d.title.toLowerCase().includes(val.toLowerCase()));
+    if(type==='t-subject'&&val) list=list.filter(d=>d.subject===val);
+    document.getElementById('t-pend-list').innerHTML=list.reverse().map(d=>fullDoubtCard(d,'teacher')).join('')||emptyState('🎉','No pending doubts','');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
+function toast(msg,type='info'){
+  const icons={success:'✅',error:'❌',info:'ℹ️'};
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span>${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(20px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},3500);
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function statCard(color,icon,val,label,sub){
+  return `<div class="stat-card ${color}"><div class="stat-icon">${icon}</div><div class="stat-val">${val}</div><div class="stat-label">${label}</div><div class="stat-change up">${sub}</div></div>`;
+}
+function emptyState(icon,title,sub){
+  return `<div class="empty-state"><div class="es-icon">${icon}</div><h3>${title}</h3><p>${sub}</p></div>`;
+}
+function subjectClass(s){
+  const map={Mathematics:'dc-math',Physics:'dc-physics',Chemistry:'dc-chemistry','Computer Science':'dc-cs',English:'dc-english',History:'dc-history',Biology:'dc-biology',General:'dc-general'};
+  return map[s]||'dc-general';
+}
+function timeAgo(dateStr){
+  if(!dateStr) return '';
+  const diff=Date.now()-new Date(dateStr).getTime();
+  const mins=Math.floor(diff/60000);const hrs=Math.floor(mins/60);const days=Math.floor(hrs/24);
+  if(mins<2)return 'just now';if(mins<60)return mins+'m ago';if(hrs<24)return hrs+'h ago';return days+'d ago';
+}
+function formatDate(dateStr){
+  if(!dateStr) return '';
+  const d=new Date(dateStr);
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+}
+const COLORS=['#4f8ef7','#22d3ee','#a78bfa','#fb923c','#22c55e','#f59e0b','#f43f5e','#c084fc'];
+function avatarColor(id){return COLORS[parseInt(id.replace(/\D/g,'').slice(-1)||0)%COLORS.length];}
+
+// ═══════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════
+seedData();
+const saved=DB.get('session');
+if(saved){
+  const u=DB.users().find(x=>x.id===saved);
+  if(u){currentUser=u;initApp();}
+}
+</script>
+</body>
+</html>
